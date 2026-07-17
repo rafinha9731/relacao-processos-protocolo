@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relação de Processos Arquivados - IPEN/CNEN</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #f4f7f6;
+            --text-color: #333;
+            --border-color: #ccc;
+            --edit-color: #ffc107;
+            --cancel-color: #6c757d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            width: 95%;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .header-container img {
+            max-height: 90px;
+            width: auto;
+        }
+
+        .header-container h1 {
+            text-align: left;
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 24px;
+        }
+
+        .form-section {
+            background-color: #eef2f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        label .required {
+            color: red;
+        }
+
+        input, select {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* REGRA PARA FORÇAR LETRAS MAIÚSCULAS NOS CAMPOS DE TEXTO */
+        input[type="text"] {
+            text-transform: uppercase;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #004494;
+        }
+
+        .btn-action {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            color: #333;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .btn-edit {
+            background-color: var(--edit-color);
+        }
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-cancel {
+            background-color: var(--cancel-color);
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn-cancel:hover {
+            background-color: #5a6268;
+        }
+
+        #editorField {
+            display: none;
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ffeeba;
+            margin-bottom: 15px;
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding-left: 40px;
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap; 
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .message {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            border: 1px solid #ddd;
+            cursor: pointer;
+            border-radius: 4px;
+            min-width: 40px;
+        }
+
+        .pagination button:hover {
+            background-color: #e9ecef;
+        }
+
+        .pagination button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .pagination button:disabled {
+            color: #aaa;
+            cursor: not-allowed;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="header-container">
+            <img src="logo_ipen.png" alt="Logo IPEN/CNEN">
+            <h1>Relação de Processos Arquivados pelo Protocolo<br>IPEN/CNEN</h1>
+        </div>
+
+        <div id="feedbackMessage" class="message"></div>
+
+        <div class="form-section">
+            <h2 id="formTitle" style="font-size: 20px; margin-top: 0;">Novo Cadastro de Processo</h2>
+            <form id="processForm">
+                
+                <input type="hidden" id="docId" value="">
+
+                <div id="editorField">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="nomeEditor">Nome de quem está editando <span class="required">*</span></label>
+                        <input type="text" id="nomeEditor" placeholder="Obrigatório para salvar alterações">
+                    </div>
+                </div>
+
+                <!-- Linha 1: Adicionado o campo Processo SEI -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="numeroProcesso">Número do Processo <span class="required">*</span></label>
+                        <input type="text" id="numeroProcesso" required placeholder="Ex: 2023/00123">
+                    </div>
+                    <div class="form-group">
+                        <label for="processoSEI">Processo SEI</label>
+                        <input type="text" id="processoSEI" placeholder="Ex: 23110.000123/2023-01">
+                    </div>
+                    <div class="form-group">
+                        <label for="numVolumes">Nº de Volumes Entregues <span class="required">*</span></label>
+                        <input type="number" id="numVolumes" min="1" required placeholder="Ex: 2">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="interessado">Interessado</label>
+                        <input type="text" id="interessado" placeholder="Ex: João da Silva / Depto Pesquisa">
+                    </div>
+                    <div class="form-group">
+                        <label for="assunto">Assunto</label>
+                        <input type="text" id="assunto" placeholder="Ex: Compra de equipamentos">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sala">Sala</label>
+                        <input type="number" id="sala" placeholder="Apenas números (Ex: 101)">
+                    </div>
+                    <div class="form-group">
+                        <label for="estante">Estante</label>
+                        <input type="text" id="estante" placeholder="Ex: A ou 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="prateleira">Prateleira</label>
+                        <input type="text" id="prateleira" placeholder="Ex: 3 ou B">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="departamento">Departamento que Entregou <span class="required">*</span></label>
+                        <input type="text" id="departamento" required placeholder="Ex: Biblioteca">
+                    </div>
+                    <div class="form-group">
+                        <label for="recebedor">Quem Recebeu o Processo <span class="required">*</span></label>
+                        <input type="text" id="recebedor" required placeholder="Ex: João da Silva">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="dataEntrega">Data da Entrega (Opcional)</label>
+                    <input type="date" id="dataEntrega">
+                </div>
+
+                <button type="submit" id="submitBtn">Cadastrar Processo</button>
+                <button type="button" id="cancelBtn" class="btn-cancel" style="display: none;">Cancelar Edição</button>
+            </form>
+        </div>
+
+        <div class="list-section">
+            <div class="list-header">
+                <h2 style="font-size: 20px; margin: 0;">Processos Cadastrados</h2>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Buscar por processo, SEI, interessado, assunto, etc...">
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nº do Processo</th>
+                            <th>Processo SEI</th>
+                            <th>Volumes</th>
+                            <th>Interessado</th>
+                            <th>Assunto</th>
+                            <th>Sala</th>
+                            <th>Estante</th>
+                            <th>Prateleira</th>
+                            <th>Departamento</th>
+                            <th>Recebedor</th>
+                            <th>Data Entrega</th>
+                            <th>Editado por</th>
+                            <th>Última Edição</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="processTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="paginationControls" class="pagination"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB86h2SFwcFhrlHeoH-N5fktN-FW2QskhM",
+            authDomain: "relacaodeprocessosnoprotocolo.firebaseapp.com",
+            projectId: "relacaodeprocessosnoprotocolo",
+            storageBucket: "relacaodeprocessosnoprotocolo.firebasestorage.app",
+            messagingSenderId: "106207501325",
+            appId: "1:106207501325:web:9d7ac1b1772f0aaf4a0944",
+            measurementId: "G-W9SY2PNQQ1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const processForm = document.getElementById('processForm');
+        const tableBody = document.getElementById('processTableBody');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const formTitle = document.getElementById('formTitle');
+        const editorField = document.getElementById('editorField');
+        const searchInput = document.getElementById('searchInput');
+        const paginationControls = document.getElementById('paginationControls');
+        
+        let todosProcessos = [];
+        let processosFiltrados = [];
+        let currentPage = 1;
+        const itemsPerPage = 15;
+
+        function showMessage(text, type) {
+            feedbackMessage.textContent = text;
+            feedbackMessage.className = `message ${type}`;
+            feedbackMessage.style.display = 'block';
+            setTimeout(() => {
+                feedbackMessage.style.display = 'none';
+            }, 4000);
+        }
+
+        function formatarTimestampFirebase(timestamp) {
+            if (!timestamp) return "—";
+            const date = new Date(timestamp.seconds * 1000);
+            return date.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        window.editarProcesso = function(id) {
+            const data = todosProcessos.find(p => p.id === id);
+            if (!data) return;
+
+            document.getElementById('docId').value = id;
+            document.getElementById('numeroProcesso').value = data.numeroProcesso || '';
+            document.getElementById('processoSEI').value = data.processoSEI || '';
+            document.getElementById('numVolumes').value = data.numVolumes || '';
+            document.getElementById('interessado').value = data.interessado || '';
+            document.getElementById('assunto').value = data.assunto || '';
+            document.getElementById('sala').value = data.sala || '';
+            document.getElementById('estante').value = data.estante || '';
+            document.getElementById('prateleira').value = data.prateleira || '';
+            document.getElementById('departamento').value = data.departamento || '';
+            document.getElementById('recebedor').value = data.recebedor || '';
+            
+            let dataVal = data.dataEntrega;
+            if (dataVal && dataVal !== "Não informada" && dataVal.includes('/')) {
+                const partes = dataVal.split('/');
+                if (partes.length === 3) {
+                    document.getElementById('dataEntrega').value = `${partes[2]}-${partes[1]}-${partes[0]}`;
+                }
+            } else if (dataVal && dataVal.includes('-')) {
+                document.getElementById('dataEntrega').value = dataVal;
+            } else {
+                document.getElementById('dataEntrega').value = '';
+            }
+
+            formTitle.innerText = "Editar Processo";
+            submitBtn.innerText = "Salvar Edição";
+            submitBtn.style.backgroundColor = "#ffc107";
+            submitBtn.style.color = "#333";
+            editorField.style.display = "block";
+            cancelBtn.style.display = "block";
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.cancelarEdicao = function() {
+            processForm.reset();
+            document.getElementById('docId').value = '';
+            formTitle.innerText = "Novo Cadastro de Processo";
+            submitBtn.innerText = "Cadastrar Processo";
+            submitBtn.style.backgroundColor = ""; 
+            submitBtn.style.color = "";
+            editorField.style.display = "none";
+            cancelBtn.style.display = "none";
+        };
+
+        cancelBtn.addEventListener('click', cancelarEdicao);
+
+        processForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('docId').value;
+            
+            // Aplicando .toUpperCase() e .trim() em todos os campos de texto antes de salvar
+            const numeroProcesso = document.getElementById('numeroProcesso').value.toUpperCase().trim();
+            const processoSEI = document.getElementById('processoSEI').value.toUpperCase().trim();
+            const numVolumes = document.getElementById('numVolumes').value;
+            const interessado = document.getElementById('interessado').value.toUpperCase().trim();
+            const assunto = document.getElementById('assunto').value.toUpperCase().trim();
+            const sala = document.getElementById('sala').value;
+            const estante = document.getElementById('estante').value.toUpperCase().trim();
+            const prateleira = document.getElementById('prateleira').value.toUpperCase().trim();
+            const departamento = document.getElementById('departamento').value.toUpperCase().trim();
+            const recebedor = document.getElementById('recebedor').value.toUpperCase().trim();
+            const dataEntrega = document.getElementById('dataEntrega').value;
+
+            // LÓGICA DE BLOQUEIO DE NÚMERO DUPLICADO
+            const processoDuplicado = todosProcessos.some(p => p.numeroProcesso === numeroProcesso && p.id !== id);
+            
+            if (processoDuplicado) {
+                showMessage("Processo já cadastrado no sistema, se necessário realize a edição do processo.", "error");
+                return; // Interrompe o salvamento
+            }
+
+            try {
+                if (id) {
+                    const nomeEditor = document.getElementById('nomeEditor').value.toUpperCase().trim();
+                    
+                    if (!nomeEditor) {
+                        showMessage("Erro: Informe o nome de quem está editando!", "error");
+                        return;
+                    }
+
+                    const docRef = doc(db, "processos_arquivados", id);
+                    await updateDoc(docRef, {
+                        numeroProcesso: numeroProcesso,
+                        processoSEI: processoSEI,
+                        numVolumes: Number(numVolumes),
+                        interessado: interessado,
+                        assunto: assunto,
+                        sala: sala,
+                        estante: estante,
+                        prateleira: prateleira,
+                        departamento: departamento,
+                        recebedor: recebedor,
+                        dataEntrega: dataEntrega || "Não informada",
+                        ultimoEditor: nomeEditor,
+                        ultimaEdicao: serverTimestamp()
+                    });
+
+                    showMessage("Processo atualizado com sucesso!", "success");
+                    cancelarEdicao();
+                } else {
+                    await addDoc(collection(db, "processos_arquivados"), {
+                        numeroProcesso: numeroProcesso,
+                        processoSEI: processoSEI,
+                        numVolumes: Number(numVolumes),
+                        interessado: interessado,
+                        assunto: assunto,
+                        sala: sala,
+                        estante: estante,
+                        prateleira: prateleira,
+                        departamento: departamento,
+                        recebedor: recebedor,
+                        dataEntrega: dataEntrega || "Não informada",
+                        criadoEm: serverTimestamp()
+                    });
+
+                    showMessage("Processo cadastrado com sucesso!", "success");
+                    processForm.reset();
+                }
+            } catch (error) {
+                console.error("Erro ao salvar: ", error);
+                showMessage("Erro ao salvar o processo. Verifique o console.", "error");
+            }
+        });
+
+        searchInput.addEventListener('input', () => {
+            currentPage = 1;
+            renderTable();
+        });
+
+        function renderTable() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+
+            processosFiltrados = todosProcessos.filter(p => {
+                if (!searchTerm) return true;
+                return (
+                    String(p.numeroProcesso || '').toLowerCase().includes(searchTerm) ||
+                    String(p.processoSEI || '').toLowerCase().includes(searchTerm) ||
+                    String(p.interessado || '').toLowerCase().includes(searchTerm) ||
+                    String(p.assunto || '').toLowerCase().includes(searchTerm) ||
+                    String(p.sala || '').toLowerCase().includes(searchTerm) ||
+                    String(p.estante || '').toLowerCase().includes(searchTerm) ||
+                    String(p.prateleira || '').toLowerCase().includes(searchTerm) ||
+                    String(p.departamento || '').toLowerCase().includes(searchTerm) ||
+                    String(p.recebedor || '').toLowerCase().includes(searchTerm)
+                );
+            });
+
+            const totalPages = Math.ceil(processosFiltrados.length / itemsPerPage);
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const itensPagina = processosFiltrados.slice(startIndex, endIndex);
+
+            tableBody.innerHTML = "";
+            const valOuVazio = (val) => val || '—';
+
+            if (itensPagina.length === 0) {
+                // Atualizado para colspan 14 por causa da nova coluna
+                tableBody.innerHTML = `<tr><td colspan="14" style="text-align: center;">Nenhum processo encontrado.</td></tr>`;
+            } else {
+                itensPagina.forEach(data => {
+                    let dataFormatada = data.dataEntrega || 'Não informada';
+                    if (dataFormatada.includes('-')) {
+                        const partes = dataFormatada.split('-');
+                        if (partes.length === 3) {
+                            dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                        }
+                    }
+
+                    let ultimaEdicaoFormatada = formatarTimestampFirebase(data.ultimaEdicao);
+                    let ultimoEditor = data.ultimoEditor || "—";
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${valOuVazio(data.numeroProcesso)}</strong></td>
+                        <td>${valOuVazio(data.processoSEI)}</td>
+                        <td>${valOuVazio(data.numVolumes)}</td>
+                        <td>${valOuVazio(data.interessado)}</td>
+                        <td>${valOuVazio(data.assunto)}</td>
+                        <td>${valOuVazio(data.sala)}</td>
+                        <td>${valOuVazio(data.estante)}</td>
+                        <td>${valOuVazio(data.prateleira)}</td>
+                        <td>${valOuVazio(data.departamento)}</td>
+                        <td>${valOuVazio(data.recebedor)}</td>
+                        <td>${dataFormatada}</td>
+                        <td>${ultimoEditor}</td>
+                        <td>${ultimaEdicaoFormatada}</td>
+                        <td>
+                            <button class="btn-action btn-edit" onclick="editarProcesso('${data.id}')">Editar</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            paginationControls.innerHTML = "";
+
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.innerHTML = "&laquo;";
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+            paginationControls.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.innerText = i;
+                if (i === currentPage) {
+                    pageBtn.classList.add('active');
+                }
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTable();
+                });
+                paginationControls.appendChild(pageBtn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.innerHTML = "&raquo;";
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+            paginationControls.appendChild(nextBtn);
+        }
+
+        const q = query(collection(db, "processos_arquivados"), orderBy("criadoEm", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            todosProcessos = [];
+
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                todosProcessos.push({ id, ...data });
+            });
+
+            renderTable();
+        });
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relação de Processos Arquivados - IPEN/CNEN</title>
     
-    <!-- Bibliotecas para Exportação Excel e PDF -->
+    <!-- Bibliotecas para Exportação/Importação Excel e PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -51,17 +51,8 @@
             flex-wrap: wrap;
         }
 
-        .header-container img {
-            max-height: 90px;
-            width: auto;
-        }
-
-        .header-container h1 {
-            text-align: left;
-            margin: 0;
-            color: var(--primary-color);
-            font-size: 24px;
-        }
+        .header-container img { max-height: 90px; width: auto; }
+        .header-container h1 { text-align: left; margin: 0; color: var(--primary-color); font-size: 24px; }
 
         .form-section {
             background-color: #eef2f5;
@@ -71,30 +62,11 @@
             border: 1px solid var(--border-color);
         }
 
-        .form-group {
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-        }
-
-        label {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        label .required {
-            color: red;
-        }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        .form-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .form-row .form-group { flex: 1; }
+        label { font-weight: bold; margin-bottom: 5px; }
+        label .required { color: red; }
 
         input, select {
             padding: 10px;
@@ -103,14 +75,8 @@
             border-radius: 4px;
             outline: none;
         }
-
-        input:focus, select:focus {
-            border-color: var(--primary-color);
-        }
-
-        input[type="text"] {
-            text-transform: uppercase;
-        }
+        input:focus, select:focus { border-color: var(--primary-color); }
+        input[type="text"] { text-transform: uppercase; }
 
         button {
             background-color: var(--primary-color);
@@ -123,10 +89,40 @@
             transition: background 0.3s;
             font-weight: bold;
         }
+        button:hover { background-color: #004494; }
 
-        button:hover {
-            background-color: #004494;
+        .form-actions-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
+
+        .left-buttons { display: flex; gap: 10px; align-items: center; }
+        
+        .right-buttons { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 5px; 
+            align-items: stretch;
+            min-width: 200px;
+        }
+
+        .btn-small-modelo {
+            background-color: var(--cancel-color);
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .btn-small-modelo:hover { background-color: #5a6268; }
 
         .btn-action {
             padding: 8px 12px;
@@ -141,24 +137,20 @@
 
         .btn-edit { background-color: var(--edit-color); }
         .btn-edit:hover { background-color: #e0a800; }
-
-        .btn-unarchive {
-            background-color: var(--unarchive-color);
-            color: #fff;
-            margin-top: 5px;
-        }
+        .btn-unarchive { background-color: var(--unarchive-color); color: #fff; margin-top: 5px; }
         .btn-unarchive:hover { background-color: #138496; }
-
-        .btn-danger {
-            background-color: var(--danger-color);
-            color: #fff;
-        }
+        .btn-danger { background-color: var(--danger-color); color: #fff; }
         .btn-danger:hover { background-color: #c82333; }
 
         .btn-cancel {
             background-color: var(--cancel-color);
-            width: 100%;
-            margin-top: 10px;
+            color: #fff;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
         }
         .btn-cancel:hover { background-color: #5a6268; }
 
@@ -179,33 +171,12 @@
             flex-wrap: wrap;
             gap: 15px;
         }
-
-        .list-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-            flex: 1;
-        }
-
-        .search-box {
-            position: relative;
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding-left: 40px;
-        }
-
+        .list-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1; }
+        .search-box { position: relative; flex: 1; min-width: 250px; }
+        .search-box input { width: 100%; padding-left: 40px; }
         .search-box::before {
-            content: "🔍";
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 16px;
+            content: "🔍"; position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%); font-size: 16px;
         }
 
         .btn-download {
@@ -218,144 +189,57 @@
             font-weight: bold;
             white-space: nowrap;
         }
-
         .btn-excel { background-color: var(--excel-color); }
         .btn-excel:hover { background-color: #218838; }
-
         .btn-pdf { background-color: var(--pdf-color); }
         .btn-pdf:hover { background-color: #c82333; }
 
-        .tabs-container {
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--border-color);
-            display: flex;
-            gap: 10px;
-        }
-
+        .tabs-container { margin-bottom: 20px; border-bottom: 2px solid var(--border-color); display: flex; gap: 10px; }
         .tab-btn {
-            background: none;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            color: var(--text-color);
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-            font-weight: bold;
+            background: none; border: none; padding: 12px 20px; font-size: 16px;
+            color: var(--text-color); cursor: pointer; border-bottom: 3px solid transparent;
+            margin-bottom: -2px; font-weight: bold;
         }
+        .tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
 
-        .tab-btn.active {
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
-        }
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        th { background-color: var(--primary-color); color: #fff; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
 
-        .table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap; 
-        }
-
-        th {
-            background-color: var(--primary-color);
-            color: #fff;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .message {
-            text-align: center;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            display: none;
-        }
-
+        .message { text-align: center; padding: 10px; margin-bottom: 15px; border-radius: 4px; display: none; }
         .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
+        .pagination { display: flex; justify-content: center; align-items: center; margin-top: 20px; gap: 5px; flex-wrap: wrap; }
         .pagination button {
-            padding: 8px 12px;
-            font-size: 14px;
-            background-color: #f8f9fa;
-            color: var(--primary-color);
-            border: 1px solid #ddd;
-            cursor: pointer;
-            border-radius: 4px;
-            min-width: 40px;
+            padding: 8px 12px; font-size: 14px; background-color: #f8f9fa;
+            color: var(--primary-color); border: 1px solid #ddd; cursor: pointer; border-radius: 4px; min-width: 40px;
         }
-
         .pagination button:hover { background-color: #e9ecef; }
         .pagination button.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
         .pagination button:disabled { color: #aaa; cursor: not-allowed; background-color: #f8f9fa; }
 
         .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center;
+            z-index: 1000; padding: 20px;
         }
-
         .modal-content {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            position: relative;
-            max-height: 90vh;
-            overflow-y: auto;
+            background-color: #fff; padding: 30px; border-radius: 8px; width: 100%; max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; max-height: 90vh; overflow-y: auto;
         }
-
         .modal-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 28px;
-            cursor: pointer;
-            color: #666;
-            background: none;
-            border: none;
-            padding: 0;
+            position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer;
+            color: #666; background: none; border: none; padding: 0;
         }
-
         .modal-content h2 { color: var(--primary-color); margin-top: 0; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        
         <div class="header-container">
             <img src="logo_ipen.png" alt="Logo IPEN/CNEN" onerror="this.style.display='none'">
             <h1>Relação de Processos Arquivados pelo Protocolo<br>IPEN/CNEN</h1>
@@ -432,8 +316,18 @@
                     <input type="date" id="dataEntrega">
                 </div>
 
-                <button type="submit" id="submitBtn">Cadastrar Processo</button>
-                <button type="button" id="cancelBtn" class="btn-cancel" style="display: none;">Cancelar Edição</button>
+                <div class="form-actions-row">
+                    <div class="left-buttons">
+                        <button type="submit" id="submitBtn">Cadastrar Processo</button>
+                        <button type="button" id="cancelBtn" class="btn-cancel" style="display: none;">Cancelar Edição</button>
+                    </div>
+
+                    <div class="right-buttons">
+                        <button type="button" id="btnUpload" class="btn-download btn-excel">📂 Importar em Massa</button>
+                        <button type="button" id="btnModelo" class="btn-small-modelo">📄 Baixar Modelo CSV</button>
+                        <input type="file" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display: none;">
+                    </div>
+                </div>
             </form>
         </div>
 
@@ -458,20 +352,10 @@
                 <table id="tabelaArquivados">
                     <thead>
                         <tr>
-                            <th>Nº do Processo</th>
-                            <th>Processo SEI</th>
-                            <th>Volumes</th>
-                            <th>Interessado</th>
-                            <th>Assunto</th>
-                            <th>Sala</th>
-                            <th>Estante</th>
-                            <th>Prateleira</th>
-                            <th>Departamento</th>
-                            <th>Recebedor</th>
-                            <th>Data Entrega</th>
-                            <th>Editado por</th>
-                            <th>Última Edição</th>
-                            <th>Ações</th>
+                            <th>Nº do Processo</th><th>Processo SEI</th><th>Volumes</th><th>Interessado</th>
+                            <th>Assunto</th><th>Sala</th><th>Estante</th><th>Prateleira</th>
+                            <th>Departamento</th><th>Recebedor</th><th>Data Entrega</th>
+                            <th>Editado por</th><th>Última Edição</th><th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="processTableBody"></tbody>
@@ -480,20 +364,14 @@
                 <table id="tabelaDesarquivados" style="display: none;">
                     <thead>
                         <tr>
-                            <th>Nº do Processo</th>
-                            <th>Departamento Solicitante</th>
-                            <th>Pessoa Responsável</th>
-                            <th>Doc. de Autorização</th>
-                            <th>Nº SEI do Termo</th>
-                            <th>Funcionário CIPRO</th>
-                            <th>Data/Hora da Solicitação</th>
-                            <th>Ações</th>
+                            <th>Nº do Processo</th><th>Departamento Solicitante</th><th>Pessoa Responsável</th>
+                            <th>Doc. de Autorização</th><th>Nº SEI do Termo</th><th>Funcionário CIPRO</th>
+                            <th>Data/Hora da Solicitação</th><th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="desarqTableBody"></tbody>
                 </table>
             </div>
-
             <div id="paginationControls" class="pagination"></div>
         </div>
     </div>
@@ -512,22 +390,18 @@
                     <label for="desarqDepartamento">Departamento que Solicita a Retirada <span class="required">*</span></label>
                     <input type="text" id="desarqDepartamento" required placeholder="Ex: Tesouraria">
                 </div>
-                
                 <div class="form-group">
                     <label for="desarqResponsavel">Pessoa Responsável <span class="required">*</span></label>
                     <input type="text" id="desarqResponsavel" required placeholder="Ex: Maria Souza">
                 </div>
-                
                 <div class="form-group">
                     <label for="desarqDocumento">Documento de Autorização <span class="required">*</span></label>
                     <input type="text" id="desarqDocumento" required placeholder="Ex: Ofício 123/2023">
                 </div>
-                
                 <div class="form-group">
                     <label for="desarqSei">Número SEI do Termo de Solicitação de Processo Físico <span class="required">*</span></label>
                     <input type="text" id="desarqSei" required placeholder="Ex: 23110.000456/2023-02">
                 </div>
-                
                 <div class="form-group">
                     <label for="desarqFuncionario">Funcionário do CIPRO <span class="required">*</span></label>
                     <select id="desarqFuncionario" required>
@@ -537,7 +411,6 @@
                         <option value="WASHINGTON">WASHINGTON</option>
                     </select>
                 </div>
-                
                 <button type="submit" style="width: 100%; margin-top: 10px;">Registrar e Gerar Termo PDF</button>
             </form>
         </div>
@@ -545,7 +418,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB86h2SFwcFhrlHeoH-N5fktN-FW2QskhM",
@@ -560,6 +433,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Elementos DOM
         const processForm = document.getElementById('processForm');
         const tableBody = document.getElementById('processTableBody');
         const desarqTableBody = document.getElementById('desarqTableBody');
@@ -572,6 +446,9 @@
         const paginationControls = document.getElementById('paginationControls');
         const btnExcel = document.getElementById('btnExcel');
         const btnPDF = document.getElementById('btnPDF');
+        const btnModelo = document.getElementById('btnModelo');
+        const btnUpload = document.getElementById('btnUpload');
+        const fileInput = document.getElementById('fileInput');
         
         const modalDesarquivamento = document.getElementById('modalDesarquivamento');
         const desarquivamentoForm = document.getElementById('desarquivamentoForm');
@@ -587,13 +464,67 @@
             feedbackMessage.textContent = text;
             feedbackMessage.className = `message ${type}`;
             feedbackMessage.style.display = 'block';
-            setTimeout(() => { feedbackMessage.style.display = 'none'; }, 4000);
+            setTimeout(() => { feedbackMessage.style.display = 'none'; }, 5000);
         }
 
         function formatarTimestampFirebase(timestamp) {
             if (!timestamp) return "—";
-            const date = new Date(timestamp.seconds * 1000);
-            return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            if (timestamp.seconds) {
+                const date = new Date(timestamp.seconds * 1000);
+                return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+            return String(timestamp);
+        }
+
+        // Função global para formatar a data de texto (AAAA-MM-DD ou DD/MM/AAAA)
+        function formatarDataTexto(dataVal) {
+            if (!dataVal) return 'Não informada';
+            if (typeof dataVal === 'object' && dataVal.seconds) {
+                const date = new Date(dataVal.seconds * 1000);
+                return date.toLocaleDateString('pt-BR');
+            }
+            if (typeof dataVal === 'string') {
+                if (dataVal.includes('-')) {
+                    const partes = dataVal.split('-');
+                    if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+                }
+                return dataVal;
+            }
+            return 'Não informada';
+        }
+
+        // ====== NOVA FUNÇÃO PARA TRATAR DATAS DO EXCEL ======
+        // O Excel guarda datas como números (ex: 45200). Esta função converte para texto (AAAA-MM-DD)
+        function parseExcelDate(val) {
+            if (!val) return "";
+            
+            // Se já for um objeto Date do JavaScript
+            if (val instanceof Date) {
+                const yyyy = val.getFullYear();
+                const mm = String(val.getMonth() + 1).padStart(2, '0');
+                const dd = String(val.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+            
+            // Se for número (formato serial do Excel)
+            if (typeof val === 'number') {
+                // Converter serial do Excel para Date
+                const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+                const yyyy = date.getUTCFullYear();
+                const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+                const dd = String(date.getUTCDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+            
+            // Se for string (texto)
+            const strVal = String(val).trim();
+            // Se vier como DD/MM/YYYY
+            if (strVal.includes('/')) {
+                const partes = strVal.split('/');
+                if (partes.length === 3) return `${partes[2]}-${partes[1]}-${partes[0]}`;
+            }
+            // Se já estiver como YYYY-MM-DD ou outro formato, retorna como está
+            return strVal;
         }
 
         window.trocarAba = function(aba) {
@@ -606,23 +537,17 @@
             renderTable();
         }
 
+        // ====== EXPORTAÇÃO ======
         function prepararDadosExportacao() {
             if (abaAtual === 'arquivados') {
-                return todosProcessos.map(p => {
-                    let dataFormatada = p.dataEntrega || 'Não informada';
-                    if (dataFormatada.includes('-')) {
-                        const partes = dataFormatada.split('-');
-                        if (partes.length === 3) dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-                    }
-                    return {
-                        "Nº Processo": p.numeroProcesso || '—', "Processo SEI": p.processoSEI || '—',
-                        "Volumes": p.numVolumes || '—', "Interessado": p.interessado || '—',
-                        "Assunto": p.assunto || '—', "Sala": p.sala || '—', "Estante": p.estante || '—',
-                        "Prateleira": p.prateleira || '—', "Departamento": p.departamento || '—',
-                        "Recebedor": p.recebedor || '—', "Data Entrega": dataFormatada,
-                        "Editado por": p.ultimoEditor || '—', "Última Edição": formatarTimestampFirebase(p.ultimaEdicao)
-                    };
-                });
+                return todosProcessos.map(p => ({
+                    "Nº Processo": p.numeroProcesso || '—', "Processo SEI": p.processoSEI || '—',
+                    "Volumes": p.numVolumes || '—', "Interessado": p.interessado || '—',
+                    "Assunto": p.assunto || '—', "Sala": p.sala || '—', "Estante": p.estante || '—',
+                    "Prateleira": p.prateleira || '—', "Departamento": p.departamento || '—',
+                    "Recebedor": p.recebedor || '—', "Data Entrega": formatarDataTexto(p.dataEntrega),
+                    "Editado por": p.ultimoEditor || '—', "Última Edição": formatarTimestampFirebase(p.ultimaEdicao)
+                }));
             } else {
                 return todosDesarquivamentos.map(d => ({
                     "Nº Processo": d.numeroProcesso || '—', "Departamento Solicitante": d.departamentoSolicitante || '—',
@@ -655,6 +580,103 @@
             doc.save(nomeArquivo);
         });
 
+        // ====== IMPORTAÇÃO EM MASSA ======
+        btnModelo.addEventListener('click', () => {
+            const dadosModelo = [{
+                "Numero Processo": "2023/00123",
+                "Processo SEI": "23110.000123/2023-01",
+                "Volumes": 2,
+                "Interessado": "João da Silva",
+                "Assunto": "Compra de equipamentos",
+                "Sala": 101,
+                "Estante": "A",
+                "Prateleira": "3",
+                "Departamento": "Biblioteca",
+                "Recebedor": "Maria Souza",
+                "Data Entrega (AAAA-MM-DD)": "2023-10-25"
+            }];
+            const ws = XLSX.utils.json_to_sheet(dadosModelo);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Modelo");
+            XLSX.writeFile(wb, "modelo_importacao_processos.csv");
+        });
+
+        btnUpload.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    // Adicionado cellDates: true para tentar forçar o Excel a entregar objetos Date
+                    const workbook = XLSX.read(data, { type: 'array', codepage: 65001, cellDates: true });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+
+                    if (json.length === 0) {
+                        showMessage("O arquivo está vazio ou no formato incorreto.", "error");
+                        return;
+                    }
+
+                    let sucessos = 0;
+                    let erros = 0;
+
+                    const getVal = (row, key) => {
+                        const foundKey = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
+                        return foundKey ? row[foundKey] : "";
+                    };
+
+                    for (const row of json) {
+                        const numeroProcesso = String(getVal(row, "Numero Processo")).toUpperCase().trim();
+                        const numVolumesStr = String(getVal(row, "Volumes")).replace(/\D/g, '');
+                        const numVolumes = parseInt(numVolumesStr) || 0;
+                        
+                        if (!numeroProcesso || numVolumes < 1) {
+                            erros++;
+                            continue;
+                        }
+
+                        const processoDuplicado = todosProcessos.some(p => p.numeroProcesso === numeroProcesso);
+                        if (processoDuplicado) {
+                            erros++;
+                            continue;
+                        }
+
+                        // Tratamento especial para a data
+                        const rawDataEntrega = getVal(row, "Data Entrega (AAAA-MM-DD)");
+                        const dataEntregaTratada = parseExcelDate(rawDataEntrega) || "Não informada";
+
+                        await addDoc(collection(db, "processos_arquivados"), {
+                            numeroProcesso: numeroProcesso,
+                            processoSEI: String(getVal(row, "Processo SEI")).toUpperCase().trim(),
+                            numVolumes: numVolumes,
+                            interessado: String(getVal(row, "Interessado")).toUpperCase().trim(),
+                            assunto: String(getVal(row, "Assunto")).toUpperCase().trim(),
+                            sala: String(getVal(row, "Sala")).trim(),
+                            estante: String(getVal(row, "Estante")).toUpperCase().trim(),
+                            prateleira: String(getVal(row, "Prateleira")).toUpperCase().trim(),
+                            departamento: String(getVal(row, "Departamento")).toUpperCase().trim(),
+                            recebedor: String(getVal(row, "Recebedor")).toUpperCase().trim(),
+                            dataEntrega: dataEntregaTratada,
+                            criadoEm: serverTimestamp()
+                        });
+                        sucessos++;
+                    }
+                    
+                    showMessage(`Importação concluída! ${sucessos} processos cadastrados, ${erros} ignorados (duplicados/inválidos).`, "success");
+                } catch (error) {
+                    console.error("Erro ao processar arquivo:", error);
+                    showMessage("Erro ao ler o arquivo. Verifique o console.", "error");
+                }
+                fileInput.value = "";
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // ====== CRUD PROCESSOS ======
         window.editarProcesso = function(id) {
             const data = todosProcessos.find(p => p.id === id);
             if (!data) return;
@@ -669,21 +691,33 @@
             document.getElementById('prateleira').value = data.prateleira || '';
             document.getElementById('departamento').value = data.departamento || '';
             document.getElementById('recebedor').value = data.recebedor || '';
+            
             let dataVal = data.dataEntrega;
-            if (dataVal && dataVal !== "Não informada" && dataVal.includes('/')) {
+            if (dataVal && typeof dataVal === 'object' && dataVal.seconds) {
+                const date = new Date(dataVal.seconds * 1000);
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                document.getElementById('dataEntrega').value = `${yyyy}-${mm}-${dd}`;
+            } else if (dataVal && typeof dataVal === 'string' && dataVal.includes('/')) {
                 const partes = dataVal.split('/');
                 if (partes.length === 3) document.getElementById('dataEntrega').value = `${partes[2]}-${partes[1]}-${partes[0]}`;
-            } else if (dataVal && dataVal.includes('-')) {
+            } else if (dataVal && typeof dataVal === 'string' && dataVal.includes('-')) {
                 document.getElementById('dataEntrega').value = dataVal;
             } else {
                 document.getElementById('dataEntrega').value = '';
             }
+            
             formTitle.innerText = "Editar Processo";
             submitBtn.innerText = "Salvar Edição";
             submitBtn.style.backgroundColor = "#ffc107";
             submitBtn.style.color = "#333";
             editorField.style.display = "block";
             cancelBtn.style.display = "block";
+            
+            btnUpload.style.display = 'none';
+            btnModelo.style.display = 'none';
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -696,6 +730,9 @@
             submitBtn.style.color = "";
             editorField.style.display = "none";
             cancelBtn.style.display = "none";
+            
+            btnUpload.style.display = '';
+            btnModelo.style.display = '';
         };
 
         cancelBtn.addEventListener('click', cancelarEdicao);
@@ -744,6 +781,7 @@
 
         searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
 
+        // ====== MODAL DESARQUIVAMENTO ======
         window.abrirModalDesarquivamento = function(id, numeroProcesso) {
             document.getElementById('desarqProcessoId').value = id;
             document.getElementById('desarqNumeroProcesso').value = numeroProcesso;
@@ -756,7 +794,6 @@
             modalDesarquivamento.style.display = 'none';
         };
 
-        // Função dedicada para gerar o PDF do Termo de Entrega
         function gerarTermoDesarquivamentoPDF(dados) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'pt', 'a4');
@@ -769,11 +806,8 @@
                 doc.setFontSize(fontSize);
                 const lines = doc.splitTextToSize(text, maxWidth);
                 lines.forEach(line => {
-                    if (align === 'center') {
-                        doc.text(line, x, y, { align: 'center' });
-                    } else {
-                        doc.text(line, x, y);
-                    }
+                    if (align === 'center') { doc.text(line, x, y, { align: 'center' }); } 
+                    else { doc.text(line, x, y); }
                     y += lineHeight;
                 });
                 return y;
@@ -806,7 +840,6 @@
             y += 40;
 
             y = addWrappedText("ASSINATURAS VIA SEI", pageWidth/2, y, pageWidth - margin*2, 16, 'bold', 12, 'center');
-
             doc.save(`Termo_Entrega_${dados.numeroProcesso}.pdf`);
         }
 
@@ -830,10 +863,7 @@
                     funcionarioCipro: funcionario, dataSolicitacao: serverTimestamp()
                 });
 
-                gerarTermoDesarquivamentoPDF({
-                    numeroProcesso, departamento, responsavel, documento, volumes
-                });
-
+                gerarTermoDesarquivamentoPDF({ numeroProcesso, departamento, responsavel, documento, volumes });
                 showMessage("Desarquivamento registrado e Termo PDF gerado com sucesso!", "success");
                 fecharModalDesarquivamento();
             } catch (error) {
@@ -842,28 +872,20 @@
             }
         });
 
-        // Função para gerar PDF a partir do Histórico (caso precise reimprimir)
         window.gerarTermoHistorico = function(id) {
             const data = todosDesarquivamentos.find(d => d.id === id);
             if (!data) return;
-
             const processoOriginal = todosProcessos.find(p => p.id === data.processoOriginalId);
             const volumes = processoOriginal ? processoOriginal.numVolumes : '____';
-
             gerarTermoDesarquivamentoPDF({
-                numeroProcesso: data.numeroProcesso,
-                departamento: data.departamentoSolicitante,
-                responsavel: data.pessoaResponsavel,
-                documento: data.documentoAutorizacao,
-                volumes: volumes
+                numeroProcesso: data.numeroProcesso, departamento: data.departamentoSolicitante,
+                responsavel: data.pessoaResponsavel, documento: data.documentoAutorizacao, volumes: volumes
             });
         };
 
-        // Função para Excluir Registro do Histórico
         window.excluirDesarquivamento = async function(id) {
             const confirmar = confirm("Tem certeza que deseja excluir este registro de desarquivamento? Esta ação não pode ser desfeita.");
             if (!confirmar) return;
-
             try {
                 await deleteDoc(doc(db, "desarquivamentos", id));
                 showMessage("Registro excluído com sucesso!", "success");
@@ -873,6 +895,7 @@
             }
         };
 
+        // ====== RENDER TABELAS ======
         function renderTable() {
             const searchTerm = searchInput.value.toLowerCase().trim();
 
@@ -891,11 +914,7 @@
                     tableBody.innerHTML = `<tr><td colspan="14" style="text-align: center;">Nenhum processo encontrado.</td></tr>`;
                 } else {
                     itensPagina.forEach(data => {
-                        let dataFormatada = data.dataEntrega || 'Não informada';
-                        if (dataFormatada.includes('-')) {
-                            const partes = dataFormatada.split('-');
-                            if (partes.length === 3) dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-                        }
+                        let dataFormatada = formatarDataTexto(data.dataEntrega);
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td><strong>${data.numeroProcesso || '—'}</strong></td>
@@ -979,18 +998,42 @@
             paginationControls.appendChild(nextBtn);
         }
 
-        const qArquivados = query(collection(db, "processos_arquivados"), orderBy("criadoEm", "desc"));
+        // ====== FIREBASE LISTENERS ======
+        const qArquivados = query(collection(db, "processos_arquivados"));
         onSnapshot(qArquivados, (snapshot) => {
             todosProcessos = [];
-            snapshot.forEach((docSnap) => todosProcessos.push({ id: docSnap.id, ...docSnap.data() }));
+            snapshot.forEach((docSnap) => {
+                todosProcessos.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            
+            todosProcessos.sort((a, b) => {
+                const timeA = a.criadoEm?.seconds || 0;
+                const timeB = b.criadoEm?.seconds || 0;
+                return timeB - timeA;
+            });
+
             if (abaAtual === 'arquivados') renderTable();
+        }, (error) => {
+            console.error("Erro ao ler processos:", error);
+            showMessage("Erro ao carregar processos do banco de dados.", "error");
         });
 
-        const qDesarquivados = query(collection(db, "desarquivamentos"), orderBy("dataSolicitacao", "desc"));
+        const qDesarquivados = query(collection(db, "desarquivamentos"));
         onSnapshot(qDesarquivados, (snapshot) => {
             todosDesarquivamentos = [];
-            snapshot.forEach((docSnap) => todosDesarquivamentos.push({ id: docSnap.id, ...docSnap.data() }));
+            snapshot.forEach((docSnap) => {
+                todosDesarquivamentos.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            
+            todosDesarquivamentos.sort((a, b) => {
+                const timeA = a.dataSolicitacao?.seconds || 0;
+                const timeB = b.dataSolicitacao?.seconds || 0;
+                return timeB - timeA;
+            });
+
             if (abaAtual === 'desarquivados') renderTable();
+        }, (error) => {
+            console.error("Erro ao ler desarquivamentos:", error);
         });
     </script>
 </body>

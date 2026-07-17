@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relação de Processos Arquivados - IPEN/CNEN</title>
+    
+    <!-- Bibliotecas para Exportação Excel e PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         :root {
             --primary-color: #0056b3;
@@ -12,6 +18,10 @@
             --border-color: #ccc;
             --edit-color: #ffc107;
             --cancel-color: #6c757d;
+            --excel-color: #28a745;
+            --pdf-color: #dc3545;
+            --unarchive-color: #17a2b8;
+            --danger-color: #dc3545;
         }
 
         body {
@@ -98,7 +108,6 @@
             border-color: var(--primary-color);
         }
 
-        /* REGRA PARA FORÇAR LETRAS MAIÚSCULAS NOS CAMPOS DE TEXTO */
         input[type="text"] {
             text-transform: uppercase;
         }
@@ -130,21 +139,28 @@
             white-space: nowrap;
         }
 
-        .btn-edit {
-            background-color: var(--edit-color);
+        .btn-edit { background-color: var(--edit-color); }
+        .btn-edit:hover { background-color: #e0a800; }
+
+        .btn-unarchive {
+            background-color: var(--unarchive-color);
+            color: #fff;
+            margin-top: 5px;
         }
-        .btn-edit:hover {
-            background-color: #e0a800;
+        .btn-unarchive:hover { background-color: #138496; }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: #fff;
         }
+        .btn-danger:hover { background-color: #c82333; }
 
         .btn-cancel {
             background-color: var(--cancel-color);
             width: 100%;
             margin-top: 10px;
         }
-        .btn-cancel:hover {
-            background-color: #5a6268;
-        }
+        .btn-cancel:hover { background-color: #5a6268; }
 
         #editorField {
             display: none;
@@ -162,6 +178,14 @@
             margin-bottom: 15px;
             flex-wrap: wrap;
             gap: 15px;
+        }
+
+        .list-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex: 1;
         }
 
         .search-box {
@@ -182,6 +206,47 @@
             top: 50%;
             transform: translateY(-50%);
             font-size: 16px;
+        }
+
+        .btn-download {
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .btn-excel { background-color: var(--excel-color); }
+        .btn-excel:hover { background-color: #218838; }
+
+        .btn-pdf { background-color: var(--pdf-color); }
+        .btn-pdf:hover { background-color: #c82333; }
+
+        .tabs-container {
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            color: var(--text-color);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            font-weight: bold;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
         }
 
         .table-container {
@@ -219,17 +284,8 @@
             display: none;
         }
 
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
         .pagination {
             display: flex;
@@ -251,21 +307,49 @@
             min-width: 40px;
         }
 
-        .pagination button:hover {
-            background-color: #e9ecef;
+        .pagination button:hover { background-color: #e9ecef; }
+        .pagination button.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .pagination button:disabled { color: #aaa; cursor: not-allowed; background-color: #f8f9fa; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
         }
 
-        .pagination button.active {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
+        .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
-        .pagination button:disabled {
-            color: #aaa;
-            cursor: not-allowed;
-            background-color: #f8f9fa;
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+            background: none;
+            border: none;
+            padding: 0;
         }
+
+        .modal-content h2 { color: var(--primary-color); margin-top: 0; }
     </style>
 </head>
 <body>
@@ -273,7 +357,7 @@
     <div class="container">
         
         <div class="header-container">
-            <img src="logo_ipen.png" alt="Logo IPEN/CNEN">
+            <img src="logo_ipen.png" alt="Logo IPEN/CNEN" onerror="this.style.display='none'">
             <h1>Relação de Processos Arquivados pelo Protocolo<br>IPEN/CNEN</h1>
         </div>
 
@@ -282,7 +366,6 @@
         <div class="form-section">
             <h2 id="formTitle" style="font-size: 20px; margin-top: 0;">Novo Cadastro de Processo</h2>
             <form id="processForm">
-                
                 <input type="hidden" id="docId" value="">
 
                 <div id="editorField">
@@ -292,7 +375,6 @@
                     </div>
                 </div>
 
-                <!-- Linha 1: Adicionado o campo Processo SEI -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="numeroProcesso">Número do Processo <span class="required">*</span></label>
@@ -357,14 +439,23 @@
 
         <div class="list-section">
             <div class="list-header">
-                <h2 style="font-size: 20px; margin: 0;">Processos Cadastrados</h2>
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Buscar por processo, SEI, interessado, assunto, etc...">
+                <h2 style="font-size: 20px; margin: 0;">Gestão de Processos</h2>
+                <div class="list-actions">
+                    <button id="btnExcel" class="btn-download btn-excel">📥 Exportar Excel</button>
+                    <button id="btnPDF" class="btn-download btn-pdf">📄 Exportar PDF</button>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Buscar...">
+                    </div>
                 </div>
+            </div>
+
+            <div class="tabs-container">
+                <button class="tab-btn active" id="tabArquivados" onclick="trocarAba('arquivados')">Processos Arquivados</button>
+                <button class="tab-btn" id="tabDesarquivados" onclick="trocarAba('desarquivados')">Histórico de Desarquivamentos</button>
             </div>
             
             <div class="table-container">
-                <table>
+                <table id="tabelaArquivados">
                     <thead>
                         <tr>
                             <th>Nº do Processo</th>
@@ -385,15 +476,76 @@
                     </thead>
                     <tbody id="processTableBody"></tbody>
                 </table>
+
+                <table id="tabelaDesarquivados" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Nº do Processo</th>
+                            <th>Departamento Solicitante</th>
+                            <th>Pessoa Responsável</th>
+                            <th>Doc. de Autorização</th>
+                            <th>Nº SEI do Termo</th>
+                            <th>Funcionário CIPRO</th>
+                            <th>Data/Hora da Solicitação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="desarqTableBody"></tbody>
+                </table>
             </div>
 
             <div id="paginationControls" class="pagination"></div>
         </div>
     </div>
 
+    <div id="modalDesarquivamento" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="fecharModalDesarquivamento()">&times;</button>
+            <h2>Desarquivamento / Retirada do Processo</h2>
+            <p style="margin-bottom: 20px;">Processo Selecionado: <strong id="modalNumeroProcesso"></strong></p>
+            
+            <form id="desarquivamentoForm">
+                <input type="hidden" id="desarqProcessoId">
+                <input type="hidden" id="desarqNumeroProcesso">
+                
+                <div class="form-group">
+                    <label for="desarqDepartamento">Departamento que Solicita a Retirada <span class="required">*</span></label>
+                    <input type="text" id="desarqDepartamento" required placeholder="Ex: Tesouraria">
+                </div>
+                
+                <div class="form-group">
+                    <label for="desarqResponsavel">Pessoa Responsável <span class="required">*</span></label>
+                    <input type="text" id="desarqResponsavel" required placeholder="Ex: Maria Souza">
+                </div>
+                
+                <div class="form-group">
+                    <label for="desarqDocumento">Documento de Autorização <span class="required">*</span></label>
+                    <input type="text" id="desarqDocumento" required placeholder="Ex: Ofício 123/2023">
+                </div>
+                
+                <div class="form-group">
+                    <label for="desarqSei">Número SEI do Termo de Solicitação de Processo Físico <span class="required">*</span></label>
+                    <input type="text" id="desarqSei" required placeholder="Ex: 23110.000456/2023-02">
+                </div>
+                
+                <div class="form-group">
+                    <label for="desarqFuncionario">Funcionário do CIPRO <span class="required">*</span></label>
+                    <select id="desarqFuncionario" required>
+                        <option value="">Selecione o funcionário...</option>
+                        <option value="JULIANA">JULIANA</option>
+                        <option value="RAFAEL">RAFAEL</option>
+                        <option value="WASHINGTON">WASHINGTON</option>
+                    </select>
+                </div>
+                
+                <button type="submit" style="width: 100%; margin-top: 10px;">Registrar e Gerar Termo PDF</button>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB86h2SFwcFhrlHeoH-N5fktN-FW2QskhM",
@@ -410,6 +562,7 @@
 
         const processForm = document.getElementById('processForm');
         const tableBody = document.getElementById('processTableBody');
+        const desarqTableBody = document.getElementById('desarqTableBody');
         const feedbackMessage = document.getElementById('feedbackMessage');
         const submitBtn = document.getElementById('submitBtn');
         const cancelBtn = document.getElementById('cancelBtn');
@@ -417,37 +570,94 @@
         const editorField = document.getElementById('editorField');
         const searchInput = document.getElementById('searchInput');
         const paginationControls = document.getElementById('paginationControls');
+        const btnExcel = document.getElementById('btnExcel');
+        const btnPDF = document.getElementById('btnPDF');
+        
+        const modalDesarquivamento = document.getElementById('modalDesarquivamento');
+        const desarquivamentoForm = document.getElementById('desarquivamentoForm');
         
         let todosProcessos = [];
+        let todosDesarquivamentos = [];
         let processosFiltrados = [];
         let currentPage = 1;
         const itemsPerPage = 15;
+        let abaAtual = 'arquivados';
 
         function showMessage(text, type) {
             feedbackMessage.textContent = text;
             feedbackMessage.className = `message ${type}`;
             feedbackMessage.style.display = 'block';
-            setTimeout(() => {
-                feedbackMessage.style.display = 'none';
-            }, 4000);
+            setTimeout(() => { feedbackMessage.style.display = 'none'; }, 4000);
         }
 
         function formatarTimestampFirebase(timestamp) {
             if (!timestamp) return "—";
             const date = new Date(timestamp.seconds * 1000);
-            return date.toLocaleString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
+
+        window.trocarAba = function(aba) {
+            abaAtual = aba;
+            document.getElementById('tabArquivados').classList.toggle('active', aba === 'arquivados');
+            document.getElementById('tabDesarquivados').classList.toggle('active', aba === 'desarquivados');
+            document.getElementById('tabelaArquivados').style.display = aba === 'arquivados' ? '' : 'none';
+            document.getElementById('tabelaDesarquivados').style.display = aba === 'desarquivados' ? '' : 'none';
+            currentPage = 1;
+            renderTable();
+        }
+
+        function prepararDadosExportacao() {
+            if (abaAtual === 'arquivados') {
+                return todosProcessos.map(p => {
+                    let dataFormatada = p.dataEntrega || 'Não informada';
+                    if (dataFormatada.includes('-')) {
+                        const partes = dataFormatada.split('-');
+                        if (partes.length === 3) dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                    }
+                    return {
+                        "Nº Processo": p.numeroProcesso || '—', "Processo SEI": p.processoSEI || '—',
+                        "Volumes": p.numVolumes || '—', "Interessado": p.interessado || '—',
+                        "Assunto": p.assunto || '—', "Sala": p.sala || '—', "Estante": p.estante || '—',
+                        "Prateleira": p.prateleira || '—', "Departamento": p.departamento || '—',
+                        "Recebedor": p.recebedor || '—', "Data Entrega": dataFormatada,
+                        "Editado por": p.ultimoEditor || '—', "Última Edição": formatarTimestampFirebase(p.ultimaEdicao)
+                    };
+                });
+            } else {
+                return todosDesarquivamentos.map(d => ({
+                    "Nº Processo": d.numeroProcesso || '—', "Departamento Solicitante": d.departamentoSolicitante || '—',
+                    "Pessoa Responsável": d.pessoaResponsavel || '—', "Doc. Autorização": d.documentoAutorizacao || '—',
+                    "Nº SEI Termo": d.numeroSeiTermo || '—', "Funcionário CIPRO": d.funcionarioCipro || '—',
+                    "Data/Hora Solicitação": formatarTimestampFirebase(d.dataSolicitacao)
+                }));
+            }
+        }
+
+        btnExcel.addEventListener('click', () => {
+            const dados = prepararDadosExportacao();
+            if (dados.length === 0) { showMessage("Nenhum dado para exportar.", "error"); return; }
+            const ws = XLSX.utils.json_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            const nomeArquivo = abaAtual === 'arquivados' ? "relacao_processos_arquivados.xlsx" : "historico_desarquivamentos.xlsx";
+            XLSX.utils.book_append_sheet(wb, ws, abaAtual === 'arquivados' ? "Arquivados" : "Desarquivamentos");
+            XLSX.writeFile(wb, nomeArquivo);
+        });
+
+        btnPDF.addEventListener('click', () => {
+            const dados = prepararDadosExportacao();
+            if (dados.length === 0) { showMessage("Nenhum dado para exportar.", "error"); return; }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'pt', 'a4');
+            const head = [Object.keys(dados[0])];
+            const body = dados.map(d => Object.values(d));
+            doc.autoTable({ head: head, body: body, startY: 20, styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak' }, headStyles: { fillColor: [0, 86, 179], textColor: 255, fontSize: 7 } });
+            const nomeArquivo = abaAtual === 'arquivados' ? "relacao_processos_arquivados.pdf" : "historico_desarquivamentos.pdf";
+            doc.save(nomeArquivo);
+        });
 
         window.editarProcesso = function(id) {
             const data = todosProcessos.find(p => p.id === id);
             if (!data) return;
-
             document.getElementById('docId').value = id;
             document.getElementById('numeroProcesso').value = data.numeroProcesso || '';
             document.getElementById('processoSEI').value = data.processoSEI || '';
@@ -459,26 +669,21 @@
             document.getElementById('prateleira').value = data.prateleira || '';
             document.getElementById('departamento').value = data.departamento || '';
             document.getElementById('recebedor').value = data.recebedor || '';
-            
             let dataVal = data.dataEntrega;
             if (dataVal && dataVal !== "Não informada" && dataVal.includes('/')) {
                 const partes = dataVal.split('/');
-                if (partes.length === 3) {
-                    document.getElementById('dataEntrega').value = `${partes[2]}-${partes[1]}-${partes[0]}`;
-                }
+                if (partes.length === 3) document.getElementById('dataEntrega').value = `${partes[2]}-${partes[1]}-${partes[0]}`;
             } else if (dataVal && dataVal.includes('-')) {
                 document.getElementById('dataEntrega').value = dataVal;
             } else {
                 document.getElementById('dataEntrega').value = '';
             }
-
             formTitle.innerText = "Editar Processo";
             submitBtn.innerText = "Salvar Edição";
             submitBtn.style.backgroundColor = "#ffc107";
             submitBtn.style.color = "#333";
             editorField.style.display = "block";
             cancelBtn.style.display = "block";
-
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -497,10 +702,7 @@
 
         processForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const id = document.getElementById('docId').value;
-            
-            // Aplicando .toUpperCase() e .trim() em todos os campos de texto antes de salvar
             const numeroProcesso = document.getElementById('numeroProcesso').value.toUpperCase().trim();
             const processoSEI = document.getElementById('processoSEI').value.toUpperCase().trim();
             const numVolumes = document.getElementById('numVolumes').value;
@@ -513,58 +715,24 @@
             const recebedor = document.getElementById('recebedor').value.toUpperCase().trim();
             const dataEntrega = document.getElementById('dataEntrega').value;
 
-            // LÓGICA DE BLOQUEIO DE NÚMERO DUPLICADO
             const processoDuplicado = todosProcessos.some(p => p.numeroProcesso === numeroProcesso && p.id !== id);
-            
-            if (processoDuplicado) {
-                showMessage("Processo já cadastrado no sistema, se necessário realize a edição do processo.", "error");
-                return; // Interrompe o salvamento
-            }
+            if (processoDuplicado) { showMessage("Processo já cadastrado no sistema, se necessário realize a edição.", "error"); return; }
 
             try {
                 if (id) {
                     const nomeEditor = document.getElementById('nomeEditor').value.toUpperCase().trim();
-                    
-                    if (!nomeEditor) {
-                        showMessage("Erro: Informe o nome de quem está editando!", "error");
-                        return;
-                    }
-
-                    const docRef = doc(db, "processos_arquivados", id);
-                    await updateDoc(docRef, {
-                        numeroProcesso: numeroProcesso,
-                        processoSEI: processoSEI,
-                        numVolumes: Number(numVolumes),
-                        interessado: interessado,
-                        assunto: assunto,
-                        sala: sala,
-                        estante: estante,
-                        prateleira: prateleira,
-                        departamento: departamento,
-                        recebedor: recebedor,
-                        dataEntrega: dataEntrega || "Não informada",
-                        ultimoEditor: nomeEditor,
-                        ultimaEdicao: serverTimestamp()
+                    if (!nomeEditor) { showMessage("Erro: Informe o nome de quem está editando!", "error"); return; }
+                    await updateDoc(doc(db, "processos_arquivados", id), {
+                        numeroProcesso, processoSEI, numVolumes: Number(numVolumes), interessado, assunto, sala, estante, prateleira, departamento, recebedor,
+                        dataEntrega: dataEntrega || "Não informada", ultimoEditor: nomeEditor, ultimaEdicao: serverTimestamp()
                     });
-
                     showMessage("Processo atualizado com sucesso!", "success");
                     cancelarEdicao();
                 } else {
                     await addDoc(collection(db, "processos_arquivados"), {
-                        numeroProcesso: numeroProcesso,
-                        processoSEI: processoSEI,
-                        numVolumes: Number(numVolumes),
-                        interessado: interessado,
-                        assunto: assunto,
-                        sala: sala,
-                        estante: estante,
-                        prateleira: prateleira,
-                        departamento: departamento,
-                        recebedor: recebedor,
-                        dataEntrega: dataEntrega || "Não informada",
-                        criadoEm: serverTimestamp()
+                        numeroProcesso, processoSEI, numVolumes: Number(numVolumes), interessado, assunto, sala, estante, prateleira, departamento, recebedor,
+                        dataEntrega: dataEntrega || "Não informada", criadoEm: serverTimestamp()
                     });
-
                     showMessage("Processo cadastrado com sucesso!", "success");
                     processForm.reset();
                 }
@@ -574,134 +742,255 @@
             }
         });
 
-        searchInput.addEventListener('input', () => {
-            currentPage = 1;
-            renderTable();
+        searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); });
+
+        window.abrirModalDesarquivamento = function(id, numeroProcesso) {
+            document.getElementById('desarqProcessoId').value = id;
+            document.getElementById('desarqNumeroProcesso').value = numeroProcesso;
+            document.getElementById('modalNumeroProcesso').innerText = numeroProcesso;
+            modalDesarquivamento.style.display = 'flex';
+        };
+
+        window.fecharModalDesarquivamento = function() {
+            desarquivamentoForm.reset();
+            modalDesarquivamento.style.display = 'none';
+        };
+
+        // Função dedicada para gerar o PDF do Termo de Entrega
+        function gerarTermoDesarquivamentoPDF(dados) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'pt', 'a4');
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 50;
+            let y = 40;
+
+            const addWrappedText = (text, x, y, maxWidth, lineHeight = 14, font = 'normal', fontSize = 11, align = 'left') => {
+                doc.setFont('times', font);
+                doc.setFontSize(fontSize);
+                const lines = doc.splitTextToSize(text, maxWidth);
+                lines.forEach(line => {
+                    if (align === 'center') {
+                        doc.text(line, x, y, { align: 'center' });
+                    } else {
+                        doc.text(line, x, y);
+                    }
+                    y += lineHeight;
+                });
+                return y;
+            };
+
+            y = addWrappedText("CIPRO - COMITÊ INTERNO DE SERVIÇO DE PROTOCOLO", pageWidth/2, y, pageWidth - margin*2, 16, 'bold', 12, 'center');
+            y = addWrappedText("Localizado: 1º Subsolo bloco “A” do Prédio de Administração IPEN/CNEN", pageWidth/2, y, pageWidth - margin*2, 14, 'normal', 10, 'center');
+            y = addWrappedText("Ramais: 5551 e 8180", pageWidth/2, y, pageWidth - margin*2, 14, 'normal', 10, 'center');
+            y += 20;
+
+            y = addWrappedText("TERMO DE ENTREGA E RECEBIMENTO DE PROCESSO FÍSICO", pageWidth/2, y, pageWidth - margin*2, 18, 'bold', 14, 'center');
+            y += 15;
+
+            y = addWrappedText("IDENTIFICAÇÃO DO PROCESSO", margin, y, pageWidth - margin*2, 16, 'bold', 12);
+            y = addWrappedText(`• Número do Processo: ${dados.numeroProcesso}`, margin, y, pageWidth - margin*2, 14, 'normal', 11);
+            y = addWrappedText(`• Interessado original: ${dados.departamento} - ${dados.responsavel}`, margin, y, pageWidth - margin*2, 14, 'normal', 11);
+            y = addWrappedText(`• Documento de Autorização: ${dados.documento}`, margin, y, pageWidth - margin*2, 14, 'normal', 11);
+            y += 20;
+
+            y = addWrappedText("DECLARAÇÃO DE ENTREGA E RETIRADA (CARGA)", margin, y, pageWidth - margin*2, 16, 'bold', 12);
+            y = addWrappedText("Pelo presente instrumento, o Comitê Interno de Serviço de Protocolo (CIPRO) realiza a entrega física dos autos do processo epigrafado, contendo ________ folha(s) numeradas e rubricadas, em perfeito estado de conservação.", margin, y, pageWidth - margin*2, 14, 'normal', 11);
+            y += 5;
+            y = addWrappedText(`A colaboradora abaixo identificada, devidamente autorizada pelo setor solicitante (${dados.departamento}), declara para os devidos fins que:`, margin, y, pageWidth - margin*2, 14, 'normal', 11);
+            y += 5;
+            
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+            y = addWrappedText(`• Recebeu, nesta data (${dataAtual}), a totalidade física de (${dados.volumes}) volume(s) dos autos descritos acima;`, margin, y, pageWidth - margin*2, 14, 'normal', 11);
+            y = addWrappedText("• Assume integral responsabilidade pela guarda, zelo, integridade, confidencialidade e segurança das informações nele contidas;", margin, y, pageWidth - margin*2, 14, 'normal', 11);
+            y = addWrappedText("• Compromete-se a restituir o respectivo processo físico a este Setor de Protocolo assim que concluída a finalidade do desarquivamento, sob as penas das normas regulamentares vigentes.", margin, y, pageWidth - margin*2, 14, 'normal', 11);
+            y += 40;
+
+            y = addWrappedText("ASSINATURAS VIA SEI", pageWidth/2, y, pageWidth - margin*2, 16, 'bold', 12, 'center');
+
+            doc.save(`Termo_Entrega_${dados.numeroProcesso}.pdf`);
+        }
+
+        desarquivamentoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const processoId = document.getElementById('desarqProcessoId').value;
+            const numeroProcesso = document.getElementById('desarqNumeroProcesso').value;
+            const departamento = document.getElementById('desarqDepartamento').value.toUpperCase().trim();
+            const responsavel = document.getElementById('desarqResponsavel').value.toUpperCase().trim();
+            const documento = document.getElementById('desarqDocumento').value.toUpperCase().trim();
+            const sei = document.getElementById('desarqSei').value.toUpperCase().trim();
+            const funcionario = document.getElementById('desarqFuncionario').value;
+
+            const processoOriginal = todosProcessos.find(p => p.id === processoId);
+            const volumes = processoOriginal ? processoOriginal.numVolumes : '____';
+
+            try {
+                await addDoc(collection(db, "desarquivamentos"), {
+                    processoOriginalId: processoId, numeroProcesso, departamentoSolicitante: departamento,
+                    pessoaResponsavel: responsavel, documentoAutorizacao: documento, numeroSeiTermo: sei,
+                    funcionarioCipro: funcionario, dataSolicitacao: serverTimestamp()
+                });
+
+                gerarTermoDesarquivamentoPDF({
+                    numeroProcesso, departamento, responsavel, documento, volumes
+                });
+
+                showMessage("Desarquivamento registrado e Termo PDF gerado com sucesso!", "success");
+                fecharModalDesarquivamento();
+            } catch (error) {
+                console.error("Erro ao registrar desarquivamento: ", error);
+                showMessage("Erro ao registrar desarquivamento.", "error");
+            }
         });
+
+        // Função para gerar PDF a partir do Histórico (caso precise reimprimir)
+        window.gerarTermoHistorico = function(id) {
+            const data = todosDesarquivamentos.find(d => d.id === id);
+            if (!data) return;
+
+            const processoOriginal = todosProcessos.find(p => p.id === data.processoOriginalId);
+            const volumes = processoOriginal ? processoOriginal.numVolumes : '____';
+
+            gerarTermoDesarquivamentoPDF({
+                numeroProcesso: data.numeroProcesso,
+                departamento: data.departamentoSolicitante,
+                responsavel: data.pessoaResponsavel,
+                documento: data.documentoAutorizacao,
+                volumes: volumes
+            });
+        };
+
+        // Função para Excluir Registro do Histórico
+        window.excluirDesarquivamento = async function(id) {
+            const confirmar = confirm("Tem certeza que deseja excluir este registro de desarquivamento? Esta ação não pode ser desfeita.");
+            if (!confirmar) return;
+
+            try {
+                await deleteDoc(doc(db, "desarquivamentos", id));
+                showMessage("Registro excluído com sucesso!", "success");
+            } catch (error) {
+                console.error("Erro ao excluir registro: ", error);
+                showMessage("Erro ao excluir o registro. Verifique o console.", "error");
+            }
+        };
 
         function renderTable() {
             const searchTerm = searchInput.value.toLowerCase().trim();
 
-            processosFiltrados = todosProcessos.filter(p => {
-                if (!searchTerm) return true;
-                return (
-                    String(p.numeroProcesso || '').toLowerCase().includes(searchTerm) ||
-                    String(p.processoSEI || '').toLowerCase().includes(searchTerm) ||
-                    String(p.interessado || '').toLowerCase().includes(searchTerm) ||
-                    String(p.assunto || '').toLowerCase().includes(searchTerm) ||
-                    String(p.sala || '').toLowerCase().includes(searchTerm) ||
-                    String(p.estante || '').toLowerCase().includes(searchTerm) ||
-                    String(p.prateleira || '').toLowerCase().includes(searchTerm) ||
-                    String(p.departamento || '').toLowerCase().includes(searchTerm) ||
-                    String(p.recebedor || '').toLowerCase().includes(searchTerm)
-                );
-            });
-
-            const totalPages = Math.ceil(processosFiltrados.length / itemsPerPage);
-            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
-            
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const itensPagina = processosFiltrados.slice(startIndex, endIndex);
-
-            tableBody.innerHTML = "";
-            const valOuVazio = (val) => val || '—';
-
-            if (itensPagina.length === 0) {
-                // Atualizado para colspan 14 por causa da nova coluna
-                tableBody.innerHTML = `<tr><td colspan="14" style="text-align: center;">Nenhum processo encontrado.</td></tr>`;
-            } else {
-                itensPagina.forEach(data => {
-                    let dataFormatada = data.dataEntrega || 'Não informada';
-                    if (dataFormatada.includes('-')) {
-                        const partes = dataFormatada.split('-');
-                        if (partes.length === 3) {
-                            dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-                        }
-                    }
-
-                    let ultimaEdicaoFormatada = formatarTimestampFirebase(data.ultimaEdicao);
-                    let ultimoEditor = data.ultimoEditor || "—";
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><strong>${valOuVazio(data.numeroProcesso)}</strong></td>
-                        <td>${valOuVazio(data.processoSEI)}</td>
-                        <td>${valOuVazio(data.numVolumes)}</td>
-                        <td>${valOuVazio(data.interessado)}</td>
-                        <td>${valOuVazio(data.assunto)}</td>
-                        <td>${valOuVazio(data.sala)}</td>
-                        <td>${valOuVazio(data.estante)}</td>
-                        <td>${valOuVazio(data.prateleira)}</td>
-                        <td>${valOuVazio(data.departamento)}</td>
-                        <td>${valOuVazio(data.recebedor)}</td>
-                        <td>${dataFormatada}</td>
-                        <td>${ultimoEditor}</td>
-                        <td>${ultimaEdicaoFormatada}</td>
-                        <td>
-                            <button class="btn-action btn-edit" onclick="editarProcesso('${data.id}')">Editar</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
+            if (abaAtual === 'arquivados') {
+                processosFiltrados = todosProcessos.filter(p => {
+                    if (!searchTerm) return true;
+                    return Object.values(p).some(val => String(val || '').toLowerCase().includes(searchTerm));
                 });
-            }
 
-            renderPagination(totalPages);
+                const totalPages = Math.ceil(processosFiltrados.length / itemsPerPage);
+                if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+                const itensPagina = processosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+                tableBody.innerHTML = "";
+                if (itensPagina.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="14" style="text-align: center;">Nenhum processo encontrado.</td></tr>`;
+                } else {
+                    itensPagina.forEach(data => {
+                        let dataFormatada = data.dataEntrega || 'Não informada';
+                        if (dataFormatada.includes('-')) {
+                            const partes = dataFormatada.split('-');
+                            if (partes.length === 3) dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                        }
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><strong>${data.numeroProcesso || '—'}</strong></td>
+                            <td>${data.processoSEI || '—'}</td>
+                            <td>${data.numVolumes || '—'}</td>
+                            <td>${data.interessado || '—'}</td>
+                            <td>${data.assunto || '—'}</td>
+                            <td>${data.sala || '—'}</td>
+                            <td>${data.estante || '—'}</td>
+                            <td>${data.prateleira || '—'}</td>
+                            <td>${data.departamento || '—'}</td>
+                            <td>${data.recebedor || '—'}</td>
+                            <td>${dataFormatada}</td>
+                            <td>${data.ultimoEditor || '—'}</td>
+                            <td>${formatarTimestampFirebase(data.ultimaEdicao)}</td>
+                            <td style="display: flex; flex-direction: column; gap: 5px;">
+                                <button class="btn-action btn-edit" onclick="editarProcesso('${data.id}')">Editar</button>
+                                <button class="btn-action btn-unarchive" onclick="abrirModalDesarquivamento('${data.id}', '${data.numeroProcesso}')">Desarquivar</button>
+                            </td>`;
+                        tableBody.appendChild(row);
+                    });
+                }
+                renderPagination(totalPages);
+            } else {
+                processosFiltrados = todosDesarquivamentos.filter(d => {
+                    if (!searchTerm) return true;
+                    return Object.values(d).some(val => String(val || '').toLowerCase().includes(searchTerm));
+                });
+
+                const totalPages = Math.ceil(processosFiltrados.length / itemsPerPage);
+                if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+                const itensPagina = processosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+                desarqTableBody.innerHTML = "";
+                if (itensPagina.length === 0) {
+                    desarqTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center;">Nenhum desarquivamento registrado.</td></tr>`;
+                } else {
+                    itensPagina.forEach(data => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><strong>${data.numeroProcesso || '—'}</strong></td>
+                            <td>${data.departamentoSolicitante || '—'}</td>
+                            <td>${data.pessoaResponsavel || '—'}</td>
+                            <td>${data.documentoAutorizacao || '—'}</td>
+                            <td>${data.numeroSeiTermo || '—'}</td>
+                            <td>${data.funcionarioCipro || '—'}</td>
+                            <td>${formatarTimestampFirebase(data.dataSolicitacao)}</td>
+                            <td style="display: flex; flex-direction: column; gap: 5px;">
+                                <button class="btn-action btn-unarchive" onclick="gerarTermoHistorico('${data.id}')">Gerar Termo PDF</button>
+                                <button class="btn-action btn-danger" onclick="excluirDesarquivamento('${data.id}')">Excluir</button>
+                            </td>`;
+                        desarqTableBody.appendChild(row);
+                    });
+                }
+                renderPagination(totalPages);
+            }
         }
 
         function renderPagination(totalPages) {
             paginationControls.innerHTML = "";
-
             if (totalPages <= 1) return;
 
             const prevBtn = document.createElement('button');
             prevBtn.innerHTML = "&laquo;";
             prevBtn.disabled = currentPage === 1;
-            prevBtn.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderTable();
-                }
-            });
+            prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
             paginationControls.appendChild(prevBtn);
 
             for (let i = 1; i <= totalPages; i++) {
                 const pageBtn = document.createElement('button');
                 pageBtn.innerText = i;
-                if (i === currentPage) {
-                    pageBtn.classList.add('active');
-                }
-                pageBtn.addEventListener('click', () => {
-                    currentPage = i;
-                    renderTable();
-                });
+                if (i === currentPage) pageBtn.classList.add('active');
+                pageBtn.addEventListener('click', () => { currentPage = i; renderTable(); });
                 paginationControls.appendChild(pageBtn);
             }
 
             const nextBtn = document.createElement('button');
             nextBtn.innerHTML = "&raquo;";
             nextBtn.disabled = currentPage === totalPages;
-            nextBtn.addEventListener('click', () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderTable();
-                }
-            });
+            nextBtn.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; renderTable(); } });
             paginationControls.appendChild(nextBtn);
         }
 
-        const q = query(collection(db, "processos_arquivados"), orderBy("criadoEm", "desc"));
-        
-        onSnapshot(q, (snapshot) => {
+        const qArquivados = query(collection(db, "processos_arquivados"), orderBy("criadoEm", "desc"));
+        onSnapshot(qArquivados, (snapshot) => {
             todosProcessos = [];
+            snapshot.forEach((docSnap) => todosProcessos.push({ id: docSnap.id, ...docSnap.data() }));
+            if (abaAtual === 'arquivados') renderTable();
+        });
 
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                todosProcessos.push({ id, ...data });
-            });
-
-            renderTable();
+        const qDesarquivados = query(collection(db, "desarquivamentos"), orderBy("dataSolicitacao", "desc"));
+        onSnapshot(qDesarquivados, (snapshot) => {
+            todosDesarquivamentos = [];
+            snapshot.forEach((docSnap) => todosDesarquivamentos.push({ id: docSnap.id, ...docSnap.data() }));
+            if (abaAtual === 'desarquivados') renderTable();
         });
     </script>
 </body>

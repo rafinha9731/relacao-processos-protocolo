@@ -315,9 +315,10 @@
         .confirm-delete .btn-confirm-yes { background-color: var(--danger-color); color: #fff; }
         .confirm-delete .btn-confirm-no { background-color: var(--cancel-color); color: #fff; }
 
-        .modal-seguranca { max-width: min(450px, 90vw); text-align: center; }
-        .modal-seguranca input { text-transform: none; text-align: center; font-size: 18px; letter-spacing: 2px; margin-bottom: 20px; }
-        .btn-confirmar-exclusao { width: 100%; background-color: var(--danger-color); font-size: 16px; padding: 12px; }
+        .modal-seguranca { max-width: min(500px, 90vw); text-align: left; }
+        .modal-seguranca h2 { text-align: center; }
+        .modal-seguranca input[type="text"]#inputConfirmacaoExclusao { text-transform: uppercase; text-align: center; font-size: 16px; letter-spacing: 2px; margin-bottom: 15px; }
+        .btn-confirmar-exclusao { width: 100%; background-color: var(--danger-color); font-size: 16px; padding: 12px; margin-top: 10px; }
 
         .volumes-dinamicos { display: none; background-color: #e8f4e8; border: 1px solid #b2d8b2; border-radius: 6px; padding: clamp(10px, 1.2vw, 16px); margin-top: clamp(6px, 0.8vw, 10px); animation: fadeInVol 0.3s ease; }
         @keyframes fadeInVol { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
@@ -462,7 +463,6 @@
                     </select>
                     <input type="text" id="auditFiltroTexto" class="filter-search" placeholder="Buscar por usuário, processo...">
                 </div>
-                <!-- NOVO BOTÃO DE EXPORTAR LOGS EXCEL -->
                 <button class="btn-download btn-excel" onclick="exportarLogsExcel()" title="Baixar logs filtrados em Excel" style="margin-left:auto;">📥 Exportar Logs</button>
             </div>
             <div class="table-container" id="auditTableContainer">
@@ -472,13 +472,30 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIRMAÇÃO DE EXCLUSÃO DE PROCESSO -->
     <div id="modalConfirmacaoSeguranca" class="modal-overlay">
         <div class="modal-content modal-seguranca">
             <button class="modal-close" onclick="fecharModalSeguranca()">&times;</button>
             <h2 style="color: var(--danger-color);">⚠️ Exclusão Permanente</h2>
-            <p style="margin: 15px 0; color: #555; font-size: 14px;">Esta ação não pode ser desfeita. O processo será apagado permanentemente do sistema.</p>
-            <p style="margin-bottom: 10px; font-weight: bold;">Para confirmar, digite <span style="color: var(--danger-color); letter-spacing: 1px;">EXCLUIR</span> abaixo:</p>
+            <p style="margin: 10px 0 15px 0; color: #555; font-size: 14px; text-align: center;">Esta ação não pode ser desfeita. O processo será apagado permanentemente do sistema.</p>
+            
+            <div class="form-group">
+                <label for="motivoExclusao">Motivo <span class="required">*</span></label>
+                <select id="motivoExclusao" onchange="verificarTextoExclusao()">
+                    <option value="">Selecione o motivo...</option>
+                    <option value="Arquivo Histórico">Arquivo Histórico</option>
+                    <option value="Eliminado">Eliminado</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="obsExclusao">Observações (Nº SEI autorizador) <span class="required">*</span></label>
+                <input type="text" id="obsExclusao" placeholder="Ex: Autorizado via SEI 23110.000123/2024-01" oninput="verificarTextoExclusao()">
+            </div>
+
+            <p style="margin-bottom: 8px; font-weight: bold; text-align: center;">Para confirmar, digite <span style="color: var(--danger-color); letter-spacing: 1px;">EXCLUIR</span> abaixo:</p>
             <input type="text" id="inputConfirmacaoExclusao" placeholder="EXCLUIR" oninput="verificarTextoExclusao()">
+            
             <button id="btnConfirmarExclusaoDefinitiva" class="btn-confirmar-exclusao" disabled>Confirmar Exclusão Permanente</button>
         </div>
     </div>
@@ -541,7 +558,6 @@
             renderAuditPagination(tp);
         }
         
-        // NOVA FUNÇÃO DE EXPORTAÇÃO DE AUDITORIA PARA EXCEL
         window.exportarLogsExcel = function() {
             if (!logsFiltrados || logsFiltrados.length === 0) {
                 showMessage("Nenhum log disponível para exportar no momento.", "error");
@@ -688,17 +704,47 @@
         function cancelarEdicao() { document.getElementById('docId').value = ''; processForm.reset(); editorField.style.display = 'none'; formTitle.textContent = "Novo Cadastro de Processo"; submitBtn.textContent = "Cadastrar Processo"; cancelBtn.style.display = 'none'; }
         cancelBtn.addEventListener('click', cancelarEdicao);
 
-        window.solicitarExclusaoProcesso = function(id) { idProcessoParaExcluir = id; document.getElementById('inputConfirmacaoExclusao').value = ''; btnConfirmarExclusaoDefinitiva.disabled = true; document.getElementById('modalConfirmacaoSeguranca').style.display = 'flex'; };
-        window.verificarTextoExclusao = function() { const input = document.getElementById('inputConfirmacaoExclusao').value.trim().toUpperCase(); btnConfirmarExclusaoDefinitiva.disabled = (input !== 'EXCLUIR'); };
-        window.fecharModalSeguranca = function() { document.getElementById('modalConfirmacaoSeguranca').style.display = 'none'; idProcessoParaExcluir = null; };
+        // MODAL DE EXCLUSÃO
+        window.solicitarExclusaoProcesso = function(id) { 
+            idProcessoParaExcluir = id; 
+            document.getElementById('inputConfirmacaoExclusao').value = ''; 
+            document.getElementById('motivoExclusao').value = '';
+            document.getElementById('obsExclusao').value = '';
+            btnConfirmarExclusaoDefinitiva.disabled = true; 
+            document.getElementById('modalConfirmacaoSeguranca').style.display = 'flex'; 
+        };
+
+        window.verificarTextoExclusao = function() { 
+            const input = document.getElementById('inputConfirmacaoExclusao').value.trim().toUpperCase(); 
+            const motivo = document.getElementById('motivoExclusao').value;
+            const obs = document.getElementById('obsExclusao').value.trim();
+
+            btnConfirmarExclusaoDefinitiva.disabled = !(input === 'EXCLUIR' && motivo !== '' && obs !== ''); 
+        };
+
+        window.fecharModalSeguranca = function() { 
+            document.getElementById('modalConfirmacaoSeguranca').style.display = 'none'; 
+            idProcessoParaExcluir = null; 
+        };
 
         btnConfirmarExclusaoDefinitiva.addEventListener('click', async () => {
             if (!idProcessoParaExcluir) return;
             const processo = todosProcessos.find(p => p.id === idProcessoParaExcluir);
             if (!processo) return;
+
+            const motivo = document.getElementById('motivoExclusao').value;
+            const obs = document.getElementById('obsExclusao').value.trim();
+
             try {
                 await deleteDoc(doc(db, "processos_arquivados", idProcessoParaExcluir));
-                registrarLog('EXCLUSAO', `Processo ${processo.numeroProcesso} EXCLUÍDO PERMANENTEMENTE.`, 'processos_arquivados', idProcessoParaExcluir, processo, null);
+                
+                const dadosAuditoriaAntes = {
+                    ...processo,
+                    motivoExclusao: motivo,
+                    observacoesExclusao: obs
+                };
+
+                registrarLog('EXCLUSAO', `Processo ${processo.numeroProcesso} EXCLUÍDO PERMANENTEMENTE. Motivo: ${motivo} | SEI/Obs: ${obs}`, 'processos_arquivados', idProcessoParaExcluir, dadosAuditoriaAntes, null);
                 showMessage("Processo excluído permanentemente.", "success");
                 fecharModalSeguranca();
             } catch (error) { console.error(error); showMessage("Erro ao excluir: " + error.message, "error"); }
@@ -736,32 +782,110 @@
         };
 
         window.gerarTermoById = function(id) { const dados = todosDesarquivamentos.find(d => d.id === id); if (dados) gerarTermoPDF(dados); };
+        
         function gerarTermoPDF(dados) {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const pageWidth = doc.internal.pageSize.getWidth(); const margin = 20; let y = 15;
-            const addWrappedText = (text, x, currentY, lineHeight = 5) => { const lines = doc.splitTextToSize(text, pageWidth - (margin * 2) - (x - margin)); doc.text(lines, x, currentY); return currentY + (lines.length * lineHeight); };
-            doc.setFontSize(10); doc.setFont(undefined, 'bold'); doc.text("CIPRO - COMITÊ INTERNO DE SERVIÇO DE PROTOCOLO", margin, y); y += 5; doc.setFont(undefined, 'normal'); doc.text("Localizado: 1º Subsolo bloco \"A\" do Prédio de Administração IPEN/CNEN", margin, y); y += 5; doc.text("Ramais: 5551 e 8180", margin, y); y += 15;
-            doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.text("TERMO DE ENTREGA E RECEBIMENTO", pageWidth / 2, y, { align: "center" }); y += 8; doc.text("DE PROCESSO FÍSICO", pageWidth / 2, y, { align: "center" }); y += 15;
-            doc.setFontSize(11); doc.text("1. IDENTIFICAÇÃO DO PROCESSO", margin, y); y += 8; doc.setFont(undefined, 'normal'); doc.text(`Número do Processo: ${dados.numeroProcesso || ''}`, margin, y); y += 6; doc.text(`Departamento Solicitante: ${dados.departamentoSolicitante || ''}`, margin, y); y += 6; doc.text(`Pessoa Responsável: ${dados.responsavel || ''}`, margin, y); y += 6; doc.text(`Documento de Autorização: ${dados.docAutorizacao || ''}`, margin, y); y += 6; doc.text(`Nº SEI do Termo: ${dados.seiTermo || ''}`, margin, y); y += 12;
-            doc.setFont(undefined, 'bold'); doc.text("2. QUANTIFICAÇÃO DE VOLUMES E PÁGINAS", margin, y); y += 8; doc.setFont(undefined, 'normal'); doc.text(`Total de Volumes Retirados: ${dados.qtdVolumes || 0}`, margin, y); y += 6;
-            let totalPaginas = 0; if(dados.volumesDetalhes && dados.volumesDetalhes.length > 0) { dados.volumesDetalhes.forEach(v => { doc.text(`- Volume ${v.volume}: ${v.paginas} página(s)`, margin + 5, y); y += 6; totalPaginas += v.paginas; }); }
-            doc.setFont(undefined, 'bold'); doc.text(`Total Geral de Páginas: ${totalPaginas}`, margin, y); y += 12;
-            doc.text("3. DECLARAÇÃO DE ENTREGA E RETIRADA (CARGA)", margin, y); y += 8; doc.setFont(undefined, 'normal');
-            y = addWrappedText(`Pelo presente instrumento, o Comitê Interno de Serviço de Protocolo (CIPRO) realiza a entrega física dos autos do processo epigrafado, contendo ${totalPaginas} folha(s) numeradas e rubricadas, distribuída(s) em ${dados.qtdVolumes || 0} volume(s), em perfeito estado de conservação.`, margin, y, 5) + 5;
-            y = addWrappedText(`A colaboradora abaixo identificada, devidamente autorizada pelo setor solicitante (${dados.departamentoSolicitante || ''}), declara para os devidos fins que:`, margin, y, 5) + 5;
-            y = addWrappedText(`I - Recebeu, nesta data, a totalidade física de (${dados.qtdVolumes || 0}) volume(s) dos autos descritos acima;`, margin + 5, y, 5) + 3;
-            y = addWrappedText(`II - Assume integral responsabilidade pela guarda, zelo, integridade, confidencialidade e segurança das informações nele contidas;`, margin + 5, y, 5) + 3;
-            y = addWrappedText(`III - Compromete-se a restituir o respectivo processo físico a este Setor de Protocolo assim que concluída a finalidade do desarquivamento, sob as penas das normas regulamentares vigentes.`, margin + 5, y, 5) + 15;
-            doc.setFontSize(9); doc.setFont(undefined, 'italic'); doc.text("(As assinaturas deverão ser realizadas via Sistema Eletrônico de Informações - SEI)", margin, y); y += 15;
-            doc.setFont(undefined, 'bold'); doc.setFontSize(11); doc.text(dados.funcionarioCIPRO || '', pageWidth / 2, y, { align: "center" }); y += 5; doc.setFont(undefined, 'normal'); doc.setFontSize(10); doc.text("Funcionário CIPRO", pageWidth / 2, y, { align: "center" }); y += 5; doc.text("Matrícula: ________________", pageWidth / 2, y, { align: "center" }); y += 20;
-            doc.setFont(undefined, 'bold'); doc.setFontSize(11); doc.text(dados.responsavel || '', pageWidth / 2, y, { align: "center" }); y += 5; doc.setFont(undefined, 'normal'); doc.setFontSize(10); doc.text(dados.departamentoSolicitante || '', pageWidth / 2, y, { align: "center" }); y += 5; doc.text("Matrícula: ________________", pageWidth / 2, y, { align: "center" });
-            doc.save(`termo_desarquivamento_${dados.numeroProcesso}.pdf`);
-        }
+    const { jsPDF } = window.jspdf; 
+    const doc = new jsPDF('p', 'mm', 'a4'); 
+    const pageWidth = doc.internal.pageSize.getWidth(); 
+    const margin = 20; 
+    let y = 15;
 
-        btnExcel.addEventListener('click', () => { if (!todosProcessos.length && !todosDesarquivamentos.length) { showMessage("Nenhum dado para exportar.", "error"); return; } const data = abaAtual === 'arquivados' ? todosProcessos.map(p => ({"Nº Processo": p.numeroProcesso, "Volumes": p.numVolumes, "Interessado": p.interessado, "Assunto": p.assunto, "Modalidade": p.modalidade, "Sala": p.sala, "Estante": p.estante, "Prateleira": p.prateleira, "Departamento": p.departamento, "Recebedor": p.recebedor, "Data Entrega": formatarDataTexto(p.dataEntrega)})) : todosDesarquivamentos.map(d => ({"Nº Processo": d.numeroProcesso, "Vol. Retirados": d.qtdVolumes, "Depto Solicitante": d.departamentoSolicitante, "Responsável": d.responsavel, "Doc. Autorização": d.docAutorizacao, "SEI Termo": d.seiTermo, "CIPRO": d.funcionarioCIPRO, "Data Solicitação": formatarTimestampFirebase(d.dataSolicitacao)})); const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, abaAtual === 'arquivados' ? "Processos" : "Desarquivamentos"); XLSX.writeFile(wb, abaAtual === 'arquivados' ? "processos_arquivados.xlsx" : "historico_desarquivamentos.xlsx"); });
-        btnPDF.addEventListener('click', () => { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); doc.setFontSize(16); doc.text(abaAtual === 'arquivados' ? "Relação de Processos Arquivados" : "Histórico de Desarquivamentos", 148, 15, { align: "center" }); let head, body; if (abaAtual === 'arquivados') { head = [["Nº Processo", "Vol", "Interessado", "Assunto", "Modalidade", "Sala", "Est.", "Prat.", "Depto", "Recebedor", "Data"]]; body = todosProcessos.map(p => [p.numeroProcesso, p.numVolumes, p.interessado, p.assunto, p.modalidade, p.sala, p.estante, p.prateleira, p.departamento, p.recebedor, formatarDataTexto(p.dataEntrega)]); } else { head = [["Nº Processo", "Vol", "Depto Solicitante", "Responsável", "Doc Autoriz.", "SEI Termo", "CIPRO", "Data"]]; body = todosDesarquivamentos.map(d => [d.numeroProcesso, d.qtdVolumes, d.departamentoSolicitante, d.responsavel, d.docAutorizacao, d.seiTermo, d.funcionarioCIPRO, formatarTimestampFirebase(d.dataSolicitacao)]); } doc.autoTable({ head, body, startY: 25, styles: { fontSize: 8 }, headStyles: { fillColor: [0, 86, 179] } }); doc.save(abaAtual === 'arquivados' ? "processos_arquivados.pdf" : "historico_desarquivamentos.pdf"); });
-        btnModelo.addEventListener('click', () => { const csv = "numeroProcesso,numVolumes,interessado,assunto,modalidade,sala,estante,prateleira,departamento,recebedor,dataEntrega\n2023/00123,2,João da Silva,Compra de materiais,Pregão,101,A,3,Biblioteca,Maria,10/10/2023"; const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'modelo_importacao.csv'; link.click(); });
-        btnUpload.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', async (e) => { const file = e.target.files[0]; if (!file) return; try { const data = await file.arrayBuffer(); const wb = XLSX.read(data); const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); if (!json.length) { showMessage("Arquivo vazio.", "error"); return; } let count = 0; for (const row of json) { const numProc = (row.numeroProcesso || '').toString().trim().toUpperCase(); if (!numProc) continue; const dados = { numeroProcesso: numProc, numVolumes: parseInt(row.numVolumes) || 0, interessado: (row.interessado || '').toString().toUpperCase(), assunto: (row.assunto || '').toString().toUpperCase(), modalidade: (row.modalidade || '').toString().toUpperCase(), sala: (row.sala || '').toString().trim(), estante: (row.estante || '').toString().toUpperCase(), prateleira: (row.prateleira || '').toString().toUpperCase(), departamento: (row.departamento || '').toString().toUpperCase(), recebedor: (row.recebedor || '').toString().toUpperCase(), dataEntrega: parseExcelDate(row.dataEntrega), criadoEm: serverTimestamp() }; const docRef = await addDoc(collection(db, "processos_arquivados"), dados); registrarLog('CRIACAO', `Processo ${numProc} criado via importação.`, 'processos_arquivados', docRef.id, null, dados); count++; } showMessage(`${count} processos importados com sucesso!`, "success"); } catch (error) { console.error(error); showMessage("Erro ao importar: " + error.message, "error"); } fileInput.value = ''; });
+    const addWrappedText = (text, x, currentY, lineHeight = 5) => { 
+        const lines = doc.splitTextToSize(text, pageWidth - (margin * 2) - (x - margin)); 
+        doc.text(lines, x, currentY); 
+        return currentY + (lines.length * lineHeight); 
+    };
+
+    // Cabeçalho
+    doc.setFontSize(10); doc.setFont(undefined, 'bold'); 
+    doc.text("CIPRO - COMITÊ INTERNO DE SERVIÇO DE PROTOCOLO", margin, y); y += 5; 
+    doc.setFont(undefined, 'normal'); 
+    doc.text("Localizado: 1º Subsolo bloco \"A\" do Prédio de Administração IPEN/CNEN", margin, y); y += 5; 
+    doc.text("Ramais: 5551 e 8180", margin, y); y += 15;
+
+    // Título
+    doc.setFontSize(14); doc.setFont(undefined, 'bold'); 
+    doc.text("TERMO DE ENTREGA E RECEBIMENTO", pageWidth / 2, y, { align: "center" }); y += 8; 
+    doc.text("DE PROCESSO FÍSICO", pageWidth / 2, y, { align: "center" }); y += 15;
+
+    // Seção 1
+    doc.setFontSize(11); doc.text("1. IDENTIFICAÇÃO DO PROCESSO", margin, y); y += 8; 
+    doc.setFont(undefined, 'normal'); 
+    doc.text(`Número do Processo: ${dados.numeroProcesso || ''}`, margin, y); y += 6; 
+    doc.text(`Departamento Solicitante: ${dados.departamentoSolicitante || ''}`, margin, y); y += 6; 
+    doc.text(`Pessoa Responsável: ${dados.responsavel || ''}`, margin, y); y += 6; 
+    doc.text(`Documento de Autorização: ${dados.docAutorizacao || ''}`, margin, y); y += 6; 
+    doc.text(`Nº SEI do Termo: ${dados.seiTermo || ''}`, margin, y); y += 12;
+
+    // Seção 2 - Quantificação de Volumes e Páginas (Formatado em 3 colunas)
+    doc.setFont(undefined, 'bold'); doc.text("2. QUANTIFICAÇÃO DE VOLUMES E PÁGINAS", margin, y); y += 8; 
+    doc.setFont(undefined, 'normal'); 
+    doc.text(`Total de Volumes Retirados: ${dados.qtdVolumes || 0}`, margin, y); y += 6;
+    
+    let totalPaginas = 0; 
+    if (dados.volumesDetalhes && dados.volumesDetalhes.length > 0) { 
+        const colWidth = 55; // Largura das colunas
+        const startX = margin + 5;
+        const startY = y;
+        let totalRows = 0;
+
+        dados.volumesDetalhes.forEach((v, index) => { 
+            const col = index % 3; // Define a coluna (0, 1 ou 2)
+            const row = Math.floor(index / 3); // Define a linha
+            totalRows = row + 1;
+
+            const posX = startX + (col * colWidth);
+            const posY = startY + (row * 6);
+
+            doc.text(`- Volume ${v.volume}: ${v.paginas} pág(s)`, posX, posY); 
+            totalPaginas += v.paginas; 
+        }); 
+
+        y = startY + (totalRows * 6) + 2; 
+    }
+    
+    doc.setFont(undefined, 'bold'); 
+    doc.text(`Total Geral de Páginas: ${totalPaginas}`, margin, y); y += 12;
+
+    // Seção 3
+    doc.setFont(undefined, 'bold'); doc.text("3. DECLARAÇÃO DE ENTREGA E RETIRADA (CARGA)", margin, y); y += 8; 
+    doc.setFont(undefined, 'normal');
+    y = addWrappedText(`Pelo presente instrumento, o Comitê Interno de Serviço de Protocolo (CIPRO) realiza a entrega física dos autos do processo epigrafado, contendo ${totalPaginas} folha(s) numeradas e rubricadas, distribuída(s) em ${dados.qtdVolumes || 0} volume(s), em perfeito estado de conservação.`, margin, y, 5) + 5;
+    y = addWrappedText(`A colaboradora abaixo identificada, devidamente autorizada pelo setor solicitante (${dados.departamentoSolicitante || ''}), declara para os devidos fins que:`, margin, y, 5) + 5;
+    y = addWrappedText(`I - Recebeu, nesta data, a totalidade física de (${dados.qtdVolumes || 0}) volume(s) dos autos descritos acima;`, margin + 5, y, 5) + 3;
+    y = addWrappedText(`II - Assume integral responsabilidade pela guarda, zelo, integridade, confidencialidade e segurança das informações nele contidas;`, margin + 5, y, 5) + 3;
+    y = addWrappedText(`III - Compromete-se a restituir o respectivo processo físico a este Setor de Protocolo assim que concluída a finalidade do desarquivamento, sob as penas das normas regulamentares vigentes.`, margin + 5, y, 5) + 10;
+
+    doc.setFontSize(9); doc.setFont(undefined, 'italic'); 
+    doc.text("(Este documento será assinado eletronicamente via Sistema Eletrônico de Informações - SEI)", margin, y); y += 12;
+
+    // Seção 4 - ASSINATURAS (Apenas 'ASSINATURAS' com nomes e setores alinhados)
+    doc.setFont(undefined, 'bold'); doc.setFontSize(11); 
+    doc.text("4. ASSINATURAS", margin, y); y += 8;
+    
+    doc.setFontSize(10);
+    
+    // Coluna 1: CIPRO (Entregue por)
+    doc.setFont(undefined, 'bold'); 
+    doc.text("Entregue por:", margin, y); 
+    doc.setFont(undefined, 'normal'); 
+    doc.text(`${dados.funcionarioCIPRO || 'CIPRO / IPEN'}`, margin, y + 5); 
+    doc.setFontSize(8); doc.setFont(undefined, 'italic');
+    doc.text("CIPRO / IPEN", margin, y + 9);
+
+    // Coluna 2: Solicitante / Responsável (Recebido por)
+    const col2X = margin + 95;
+    doc.setFontSize(10); doc.setFont(undefined, 'bold'); 
+    doc.text("Recebido por:", col2X, y); 
+    doc.setFont(undefined, 'normal'); 
+    doc.text(`${dados.responsavel || ''}`, col2X, y + 5); 
+    doc.setFontSize(8); doc.setFont(undefined, 'italic');
+    if (dados.departamentoSolicitante) {
+        doc.text(`${dados.departamentoSolicitante}`, col2X, y + 9);
+    }
+
+    doc.save(`Termo_Desarquivamento_${dados.numeroProcesso ? dados.numeroProcesso.replace(/[\/\\:]/g, '_') : 'processo'}.pdf`);
+}
     </script>
 </body>
 </html>

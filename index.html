@@ -775,6 +775,72 @@
             currentPage = 1; renderTabela();
         }
         searchInput.addEventListener('input', aplicarFiltroBusca);
+// ====== AÇÕES DOS BOTÕES DE EXPORTAR EXCEL E PDF ======
+
+// Exportar para Excel
+btnExcel.addEventListener('click', () => {
+    if (processosFiltrados.length === 0) {
+        showMessage("Nenhum processo na lista para exportar.", "error");
+        return;
+    }
+    
+    // Mapeia os dados para o formato amigável do Excel
+    const dadosParaExcel = processosFiltrados.map(p => ({
+        "Nº Processo / SEI": p.numeroProcesso || '',
+        "Volumes": p.numVolumes || '',
+        "Interessado": p.interessado || '',
+        "Assunto": p.assunto || '',
+        "Modalidade": p.modalidade || '',
+        "Sala": p.sala || '',
+        "Estante": p.estante || '',
+        "Prateleira": p.prateleira || '',
+        "Departamento": p.departamento || '',
+        "Recebedor": p.recebedor || '',
+        "Data Entrega": formatarDataTexto(p.dataEntrega),
+        "Editado por": p.ultimoEditor || '',
+        "Última Edição": formatarTimestampSupabase(p.ultimaEdicao)
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dadosParaExcel);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Processos Arquivados");
+    XLSX.writeFile(wb, "processos_arquivados.xlsx");
+    showMessage("Exportação para Excel concluída!", "success");
+});
+
+// Exportar para PDF
+btnPDF.addEventListener('click', () => {
+    if (processosFiltrados.length === 0) {
+        showMessage("Nenhum processo na lista para exportar.", "error");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4'); // 'l' = landscape (paisagem), melhor para tabelas largas
+
+    // Usa o plugin autoTable para gerar a tabela no PDF
+    doc.autoTable({
+        head: [['Nº Processo', 'Vol', 'Interessado', 'Assunto', 'Sala', 'Est', 'Prat', 'Departamento', 'Recebedor', 'Data Entrega']],
+        body: processosFiltrados.map(p => [
+            p.numeroProcesso || '',
+            p.numVolumes || '',
+            p.interessado || '',
+            p.assunto || '',
+            p.sala || '',
+            p.estante || '',
+            p.prateleira || '',
+            p.departamento || '',
+            p.recebedor || '',
+            formatarDataTexto(p.dataEntrega)
+        ]),
+        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+        headStyles: { fillColor: [0, 86, 179], textColor: 255, fontStyle: 'bold' }, // Cor primária do seu sistema
+        columnStyles: { 0: { cellWidth: 30 }, 2: { cellWidth: 40 }, 3: { cellWidth: 40 } }
+    });
+
+    doc.save("processos_arquivados.pdf");
+    showMessage("Exportação para PDF concluída!", "success");
+});
 
         function renderTabela() {
             const tbody = abaAtual === 'arquivados' ? tableBody : desarqTableBody; tbody.innerHTML = '';
@@ -826,6 +892,117 @@
         window.editarProcesso = function(id) { const p = todosProcessos.find(proc => proc.id === id); if (!p) return; document.getElementById('docId').value = p.id; ['numeroProcesso','numVolumes','interessado','assunto','modalidade','sala','estante','prateleira','departamento','recebedor','dataEntrega'].forEach(c => { document.getElementById(c).value = p[c] || ''; }); editorField.style.display = 'block'; formTitle.textContent = "Editando Processo"; submitBtn.textContent = "Salvar Alterações"; cancelBtn.style.display = 'inline-block'; window.scrollTo({ top: 0, behavior: 'smooth' }); };
         function cancelarEdicao() { document.getElementById('docId').value = ''; processForm.reset(); editorField.style.display = 'none'; formTitle.textContent = "Novo Cadastro de Processo"; submitBtn.textContent = "Cadastrar Processo"; cancelBtn.style.display = 'none'; }
         cancelBtn.addEventListener('click', cancelarEdicao);
+// ====== AÇÕES DOS BOTÕES DE IMPORTAR E BAIXAR MODELO ======
+
+// 1. Baixar Modelo CSV
+btnModelo.addEventListener('click', () => {
+    // Cabeçalhos exatos que o sistema espera
+    const headers = ['numeroProcesso', 'numVolumes', 'interessado', 'assunto', 'modalidade', 'sala', 'estante', 'prateleira', 'departamento', 'recebedor', 'dataEntrega'];
+    // Linha de exemplo (opcional, mas ajuda o usuário)
+    const sampleRow = ['2023/00123', '2', 'João da Silva', 'Compra de equipamentos', 'Pregão', '101', 'A', '3', 'Biblioteca', 'Maria Souza', '2023-10-25'];
+    
+    // Monta o conteúdo CSV
+    const csvContent = [
+        headers.join(','),
+        sampleRow.map(field => `"${field}"`).join(',') // Coloca aspas para evitar problemas com vírgulas
+    ].join('\n');
+
+    // Cria o arquivo e força o download
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'modelo_importacao_processos.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+// 2. Abrir seletor de arquivos ao clicar em "Importar em Massa"
+btnUpload.addEventListener('click', () => fileInput.click());
+
+// 3. Ler e processar o arquivo selecionado
+fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+        try {
+            const data = new Uint8Array(event.target.result);
+            // Usa a biblioteca XLSX para ler o arquivo (funciona para CSV e Excel)
+            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            // Converte a planilha em um array de objetos JSON
+            const json = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+            if (json.length === 0) {
+                showMessage("O arquivo está vazio ou não possui dados válidos.", "error");
+                return;
+            }
+
+            // Mapeia e limpa os dados lidos para o padrão do Supabase
+            const processosParaInserir = json.map(row => {
+                // Tratamento especial para a data (converte para ISO string se for data do Excel)
+                let dataEntrega = row.dataEntrega || row['Data Entrega'] || '';
+                if (dataEntrega instanceof Date) {
+                    dataEntrega = dataEntrega.toISOString().split('T')[0];
+                } else if (typeof dataEntrega === 'string' && dataEntrega.includes('/')) {
+                    // Tenta converter DD/MM/YYYY para YYYY-MM-DD
+                    const p = dataEntrega.split('/');
+                    if (p.length === 3) dataEntrega = `${p[2]}-${p[1]}-${p[0]}`;
+                }
+
+                return {
+                    numeroProcesso: String(row.numeroProcesso || row['Nº do Processo'] || '').toUpperCase().trim(),
+                    numVolumes: parseInt(row.numVolumes || row['Volumes']) || 1,
+                    interessado: String(row.interessado || row['Interessado'] || '').toUpperCase().trim(),
+                    assunto: String(row.assunto || row['Assunto'] || '').toUpperCase().trim(),
+                    modalidade: String(row.modalidade || row['Modalidade'] || '').toUpperCase().trim(),
+                    sala: String(row.sala || row['Sala'] || '').trim(),
+                    estante: String(row.estante || row['Estante'] || '').toUpperCase().trim(),
+                    prateleira: String(row.prateleira || row['Prateleira'] || '').toUpperCase().trim(),
+                    departamento: String(row.departamento || row['Departamento'] || '').toUpperCase().trim(),
+                    recebedor: String(row.recebedor || row['Recebedor'] || '').toUpperCase().trim(),
+                    dataEntrega: dataEntrega || null,
+                    criadoEm: new Date().toISOString()
+                };
+            }).filter(p => p.numeroProcesso); // Ignora linhas totalmente vazias
+
+            if (processosParaInserir.length === 0) {
+                showMessage("Nenhum processo válido encontrado no arquivo. Verifique se a coluna 'numeroProcesso' existe.", "error");
+                return;
+            }
+
+            showMessage(`Importando ${processosParaInserir.length} processos...`, "success");
+
+            // Insere todos de uma vez no Supabase
+            const { data: insertedData, error } = await supabase.from('processos_arquivados').insert(processosParaInserir).select();
+
+            if (error) throw error;
+
+            // Registra log da importação em massa
+            if (insertedData && insertedData.length > 0) {
+                registrarLog('CRIACAO', `Importação em massa de ${insertedData.length} processos.`, 'processos_arquivados', null, null, { total: insertedData.length });
+            }
+
+            showMessage(`${insertedData.length} processos importados com sucesso!`, "success");
+            
+        } catch (error) {
+            console.error("Erro ao importar arquivo:", error);
+            showMessage("Erro ao ler/importar o arquivo: " + error.message, "error");
+        } finally {
+            // Limpa o input para permitir importar o mesmo arquivo novamente se necessário
+            fileInput.value = '';
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+});
 
         // MODAL DE EXCLUSÃO
         window.solicitarExclusaoProcesso = function(id) { 

@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- BIBLIOTECA DO SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
@@ -501,14 +503,10 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = { apiKey: "AIzaSyB86h2SFwcFhrlHeoH-N5fktN-FW2QskhM", authDomain: "relacaodeprocessosnoprotocolo.firebaseapp.com", projectId: "relacaodeprocessosnoprotocolo", storageBucket: "relacaodeprocessosnoprotocolo.firebasestorage.app", messagingSenderId: "106207501325", appId: "1:106207501325:web:9d7ac1b1772f0aaf4a0944", measurementId: "G-W9SY2PNQQ1" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        // INICIALIZAÇÃO DO SUPABASE
+        const SUPABASE_URL = 'https://tvedxkxzwejjfmcufnpw.supabase.co'; // Substitua pela sua URL
+        const SUPABASE_KEY = 'sb_publishable_kTr94PqbtAFHuQycxcS_lw_C4ZAYRa2'; // Substitua pela sua chave anon public
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const loginWrapper = document.getElementById('loginWrapper'); const mainContainer = document.getElementById('mainContainer'); const loginForm = document.getElementById('loginForm'); const loginError = document.getElementById('loginError'); const logoutBtn = document.getElementById('logoutBtn'); const processForm = document.getElementById('processForm'); const tableBody = document.getElementById('processTableBody'); const desarqTableBody = document.getElementById('desarqTableBody'); const feedbackMessage = document.getElementById('feedbackMessage'); const submitBtn = document.getElementById('submitBtn'); const cancelBtn = document.getElementById('cancelBtn'); const formTitle = document.getElementById('formTitle'); const editorField = document.getElementById('editorField'); const searchInput = document.getElementById('searchInput'); const paginationControls = document.getElementById('paginationControls'); const btnExcel = document.getElementById('btnExcel'); const btnPDF = document.getElementById('btnPDF'); const btnModelo = document.getElementById('btnModelo'); const btnUpload = document.getElementById('btnUpload'); const fileInput = document.getElementById('fileInput'); const modalDesarquivamento = document.getElementById('modalDesarquivamento'); const desarquivamentoForm = document.getElementById('desarquivamentoForm'); const desarqQtdVolumes = document.getElementById('desarqQtdVolumes'); const volumesDinamicos = document.getElementById('volumesDinamicos'); const volumesPaginasContainer = document.getElementById('volumesPaginasContainer'); const btnAuditLog = document.getElementById('btnAuditLog'); const modalAuditoria = document.getElementById('modalAuditoria'); const auditFiltroTipo = document.getElementById('auditFiltroTipo'); const auditFiltroTexto = document.getElementById('auditFiltroTexto'); const auditTableBody = document.getElementById('auditTableBody'); const auditPagination = document.getElementById('auditPagination'); const auditStats = document.getElementById('auditStats'); const auditBadge = document.getElementById('auditBadge'); const btnConfirmarExclusaoDefinitiva = document.getElementById('btnConfirmarExclusaoDefinitiva');
 
@@ -521,7 +519,19 @@
 
         async function registrarLog(tipoAcao, descricao, colecaoAfetada, idDocAfetado, dadosAntes, dadosDepois) {
             if (!usuarioAtual) return;
-            try { await addDoc(collection(db, "logs_auditoria"), { tipoAcao, descricao, usuarioEmail: usuarioAtual.email || 'N/A', usuarioNome: usuarioAtual.displayName || usuarioAtual.email || 'N/A', ipUsuario, colecaoAfetada: colecaoAfetada || '', idDocumentoAfetado: idDocAfetado || '', dadosAntes: dadosAntes || null, dadosDepois: dadosDepois || null, timestamp: serverTimestamp() }); } catch (e) { console.warn("[Audit] Falha ao registrar log:", e.message); }
+            try { 
+                await supabase.from('logs_auditoria').insert([{ 
+                    tipoAcao, 
+                    descricao, 
+                    usuarioEmail: usuarioAtual.email || 'N/A', 
+                    usuarioNome: usuarioAtual.email || 'N/A', // O Supabase não possui displayName por padrão, usando email
+                    ipUsuario, 
+                    colecaoAfetada: colecaoAfetada || '', 
+                    idDocumentoAfetado: idDocAfetado || '', 
+                    dadosAntes: dadosAntes || null, 
+                    dadosDepois: dadosDepois || null 
+                }]); 
+            } catch (e) { console.warn("[Audit] Falha ao registrar log:", e.message); }
         }
 
         function atualizarAuditBadge() { if (todosLogs.length > 0) { auditBadge.style.display = 'flex'; auditBadge.textContent = todosLogs.length > 99 ? '99+' : todosLogs.length; } else { auditBadge.style.display = 'none'; } }
@@ -535,19 +545,23 @@
 
         function renderAuditStats() { const c = { CRIACAO: 0, EDICAO: 0, EXCLUSAO: 0, DESARQUIVAMENTO: 0, EXCLUSAO_DESARQ: 0, DEVOLUCAO_ARQUIVO: 0 }; todosLogs.forEach(l => { if (c[l.tipoAcao] !== undefined) c[l.tipoAcao]++; }); auditStats.innerHTML = `<div class="audit-stat-card"><span class="stat-num">${c.CRIACAO}</span><span class="stat-label">Criações</span></div><div class="audit-stat-card"><span class="stat-num">${c.EDICAO}</span><span class="stat-label">Edições</span></div><div class="audit-stat-card"><span class="stat-num">${c.EXCLUSAO}</span><span class="stat-label">Exclusões</span></div><div class="audit-stat-card"><span class="stat-num">${c.DESARQUIVAMENTO}</span><span class="stat-label">Desarquiv.</span></div><div class="audit-stat-card"><span class="stat-num">${c.DEVOLUCAO_ARQUIVO}</span><span class="stat-label">Devoluções</span></div><div class="audit-stat-card"><span class="stat-num">${c.EXCLUSAO_DESARQ}</span><span class="stat-label">Excl. Desarq.</span></div>`; }
         
-        function sanitizarDados(d) { if (!d) return null; const c = { ...d }; delete c.criadoEm; delete c.ultimaEdicao; delete c.ultimoEditor; return c; }
+        function sanitizarDados(d) { if (!d) return null; const c = { ...d }; delete c.criadoEm; delete c.ultimaEdicao; delete c.ultimoEditor; delete c.id; return c; }
 
         function renderAuditTable() {
             const ft = auditFiltroTipo.value, ftx = auditFiltroTexto.value.toLowerCase().trim();
             logsFiltrados = todosLogs.filter(l => { if (ft && l.tipoAcao !== ft) return false; if (ftx) return [l.usuarioEmail, l.usuarioNome, l.descricao, l.ipUsuario, l.numeroProcesso || '', l.idDocumentoAfetado || ''].some(v => v && String(v).toLowerCase().includes(ftx)); return true; });
-            logsFiltrados.sort((a, b) => { const tA = a.timestamp?.seconds || 0; const tB = b.timestamp?.seconds || 0; return tB - tA; });
+            logsFiltrados.sort((a, b) => { 
+                const tA = new Date(a.timestamp).getTime() || 0; 
+                const tB = new Date(b.timestamp).getTime() || 0; 
+                return tB - tA; 
+            });
             const tp = Math.ceil(logsFiltrados.length / auditItemsPerPage); if (auditCurrentPage > tp) auditCurrentPage = Math.max(1, tp);
             const pd = logsFiltrados.slice((auditCurrentPage - 1) * auditItemsPerPage, auditCurrentPage * auditItemsPerPage);
             auditTableBody.innerHTML = '';
             if (!pd.length) { auditTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">Nenhum registro encontrado.</td></tr>'; } else {
                 pd.forEach((l, idx) => {
                     const cfg = acaoConfig[l.tipoAcao] || { label: l.tipoAcao, cls: '', icon: '' }; const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${formatarTimestampFirebase(l.timestamp)}</td><td>${l.usuarioNome || '—'}<br><small style="color:#888;">${l.usuarioEmail || ''}</small></td><td><span class="badge-acao ${cfg.cls}">${cfg.icon} ${cfg.label}</span></td><td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;">${l.descricao || '—'}</td><td><small>${l.ipUsuario || '—'}</small></td><td><button class="btn-ver-detalhes" onclick="toggleLogDetalhe(${(auditCurrentPage - 1) * auditItemsPerPage + idx})">▼ Ver</button></td>`;
+                    tr.innerHTML = `<td>${formatarTimestampSupabase(l.timestamp)}</td><td>${l.usuarioNome || '—'}<br><small style="color:#888;">${l.usuarioEmail || ''}</small></td><td><span class="badge-acao ${cfg.cls}">${cfg.icon} ${cfg.label}</span></td><td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;">${l.descricao || '—'}</td><td><small>${l.ipUsuario || '—'}</small></td><td><button class="btn-ver-detalhes" onclick="toggleLogDetalhe(${(auditCurrentPage - 1) * auditItemsPerPage + idx})">▼ Ver</button></td>`;
                     auditTableBody.appendChild(tr);
                     const trD = document.createElement('tr'); trD.className = 'log-detail-row'; trD.id = `logDetail_${(auditCurrentPage - 1) * auditItemsPerPage + idx}`;
                     const tA = l.dadosAntes && Object.keys(l.dadosAntes).length > 0; const tD = l.dadosDepois && Object.keys(l.dadosDepois).length > 0;
@@ -570,7 +584,7 @@
                 const resumoDepois = l.dadosDepois ? `Sim (${Object.keys(l.dadosDepois).length} campos)` : 'Não';
 
                 return {
-                    "Data/Hora": formatarTimestampFirebase(l.timestamp),
+                    "Data/Hora": formatarTimestampSupabase(l.timestamp),
                     "Nome do Usuário": l.usuarioNome || 'N/A',
                     "E-mail do Usuário": l.usuarioEmail || 'N/A',
                     "Tipo de Ação": cfg.label,
@@ -595,14 +609,80 @@
 
         desarqQtdVolumes.addEventListener('input', () => { const qtd = parseInt(desarqQtdVolumes.value) || 0; volumesPaginasContainer.innerHTML = ''; if (qtd < 1) { volumesDinamicos.style.display = 'none'; return; } volumesDinamicos.style.display = 'block'; for (let i = 1; i <= qtd; i++) { const item = document.createElement('div'); item.className = 'vol-item'; item.innerHTML = `<span class="vol-label">Volume ${i}:</span><input type="number" id="desarqPagVol${i}" min="0" placeholder="Págs do Vol. ${i}" required>`; volumesPaginasContainer.appendChild(item); } });
 
-        loginForm.addEventListener('submit', async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); loginError.style.display = 'none'; } catch (error) { loginError.style.display = 'block'; } });
-        logoutBtn.addEventListener('click', async () => { await signOut(auth); mainContainer.style.display = 'none'; loginWrapper.style.display = 'flex'; });
-        onAuthStateChanged(auth, (user) => { if (user) { usuarioAtual = user; loginWrapper.style.display = 'none'; mainContainer.style.display = 'block'; detectarIP(); iniciarSistema(); } else { usuarioAtual = null; loginWrapper.style.display = 'flex'; mainContainer.style.display = 'none'; } });
+        // AUTENTICAÇÃO SUPABASE
+        loginForm.addEventListener('submit', async (e) => { 
+            e.preventDefault(); 
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: document.getElementById('emailInput').value,
+                password: document.getElementById('passwordInput').value
+            });
+            if (error) { loginError.style.display = 'block'; } 
+            else { loginError.style.display = 'none'; }
+        });
+        
+        logoutBtn.addEventListener('click', async () => { 
+            await supabase.auth.signOut(); 
+            mainContainer.style.display = 'none'; 
+            loginWrapper.style.display = 'flex'; 
+        });
+        
+        // Verifica sessão atual ao carregar a página
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                usuarioAtual = session.user;
+                loginWrapper.style.display = 'none';
+                mainContainer.style.display = 'block';
+                detectarIP();
+                iniciarSistema();
+            } else {
+                loginWrapper.style.display = 'flex';
+                mainContainer.style.display = 'none';
+            }
+        });
+
+        // Ouvinte de mudança de estado de autenticação
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN') {
+                usuarioAtual = session.user;
+                loginWrapper.style.display = 'none';
+                mainContainer.style.display = 'block';
+                detectarIP();
+                iniciarSistema();
+            } else if (event === 'SIGNED_OUT') {
+                usuarioAtual = null;
+                loginWrapper.style.display = 'flex';
+                mainContainer.style.display = 'none';
+            }
+        });
 
         function showMessage(t, tp) { feedbackMessage.textContent = t; feedbackMessage.className = `message ${tp}`; feedbackMessage.style.display = 'block'; setTimeout(() => { feedbackMessage.style.display = 'none'; }, 5000); }
-        function formatarTimestampFirebase(ts) { if (!ts) return "—"; if (ts.seconds) return new Date(ts.seconds * 1000).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); return String(ts); }
-        function formatarDataTexto(dv) { if (!dv) return 'Não informada'; if (typeof dv === 'object' && dv.seconds) return new Date(dv.seconds * 1000).toLocaleDateString('pt-BR'); if (typeof dv === 'string' && dv.includes('-')) { const p = dv.split('-'); if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`; } return typeof dv === 'string' ? dv : 'Não informada'; }
-        function parseExcelDate(v) { if (!v) return null; if (typeof v === 'object' && v.seconds) return new Date(v.seconds * 1000).toISOString().split('T')[0]; if (typeof v === 'string') return v.includes('-') ? v : null; if (typeof v === 'number') { const utc_days = Math.floor(v - 25569); return new Date(utc_days * 86400 * 1000).toISOString().split('T')[0]; } return null; }
+        
+        // Adaptado para formato ISO do Supabase
+        function formatarTimestampSupabase(ts) { 
+            if (!ts) return "—"; 
+            if (typeof ts === 'string') return new Date(ts).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); 
+            return String(ts); 
+        }
+        
+        function formatarDataTexto(dv) { 
+            if (!dv) return 'Não informada'; 
+            if (typeof dv === 'string') {
+                if (dv.includes('T')) return new Date(dv).toLocaleDateString('pt-BR'); // ISO string
+                if (dv.includes('-')) { const p = dv.split('-'); if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`; }
+                return dv;
+            }
+            return 'Não informada'; 
+        }
+        
+        function parseExcelDate(v) { 
+            if (!v) return null; 
+            if (typeof v === 'string') {
+                if (v.includes('T')) return new Date(v).toISOString().split('T')[0];
+                return v.includes('-') ? v : null;
+            }
+            if (typeof v === 'number') { const utc_days = Math.floor(v - 25569); return new Date(utc_days * 86400 * 1000).toISOString().split('T')[0]; } 
+            return null; 
+        }
 
         function ordenarProcessos() {
             if (!sortColumn || abaAtual !== 'arquivados') return;
@@ -619,8 +699,8 @@
                 let valA = a[campo] || '', valB = b[campo] || '';
                 
                 if (['dataEntrega', 'ultimaEdicao'].includes(campo)) {
-                    valA = typeof valA === 'object' && valA.seconds ? valA.seconds * 1000 : (typeof valA === 'string' && valA.includes('-') ? new Date(valA).getTime() : 0);
-                    valB = typeof valB === 'object' && valB.seconds ? valB.seconds * 1000 : (typeof valB === 'string' && valB.includes('-') ? new Date(valB).getTime() : 0);
+                    valA = typeof valA === 'string' ? new Date(valA).getTime() : 0;
+                    valB = typeof valB === 'string' ? new Date(valB).getTime() : 0;
                     if (!a[campo]) valA = sortDirection === 'asc' ? Infinity : -Infinity;
                     if (!b[campo]) valB = sortDirection === 'asc' ? Infinity : -Infinity;
                 } else if (['numVolumes', 'sala'].includes(campo)) {
@@ -635,10 +715,41 @@
             });
         }
 
-        function iniciarSistema() {
-            onSnapshot(query(collection(db, "processos_arquivados")), (snap) => { todosProcessos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); aplicarFiltroBusca(); }, (error) => { console.error("Erro crítico:", error); showMessage("Erro ao carregar processos.", "error"); });
-            onSnapshot(query(collection(db, "desarquivamentos")), (snap) => { todosDesarquivamentos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (abaAtual === 'desarquivados') aplicarFiltroBusca(); }, (error) => { console.error("Erro:", error); });
-            try { onSnapshot(query(collection(db, "logs_auditoria")), (snap) => { todosLogs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); atualizarAuditBadge(); if (modalAuditoria.style.display === 'flex') { renderAuditStats(); renderAuditTable(); } }, (error) => { console.warn("[Audit] Falha:", error.message); }); } catch (e) { console.warn("[Audit] Erro geral:", e.message); }
+        async function iniciarSistema() {
+            // Carregamento Inicial e Realtime do Supabase para 'processos_arquivados'
+            const loadProcessos = async () => {
+                const { data, error } = await supabase.from('processos_arquivados').select('*');
+                if (error) { console.error("Erro crítico:", error); showMessage("Erro ao carregar processos.", "error"); return; }
+                todosProcessos = data || [];
+                aplicarFiltroBusca();
+            };
+            await loadProcessos();
+
+            // Carregamento Inicial e Realtime para 'desarquivamentos'
+            const loadDesarquivamentos = async () => {
+                const { data, error } = await supabase.from('desarquivamentos').select('*');
+                if (error) { console.error("Erro:", error); return; }
+                todosDesarquivamentos = data || [];
+                if (abaAtual === 'desarquivados') aplicarFiltroBusca();
+            };
+            await loadDesarquivamentos();
+
+            // Carregamento Inicial e Realtime para 'logs_auditoria'
+            const loadLogs = async () => {
+                const { data, error } = await supabase.from('logs_auditoria').select('*');
+                if (error) { console.warn("[Audit] Falha:", error.message); return; }
+                todosLogs = data || [];
+                atualizarAuditBadge();
+                if (modalAuditoria.style.display === 'flex') { renderAuditStats(); renderAuditTable(); }
+            };
+            await loadLogs();
+
+            // Configurando inscrições Realtime do Supabase
+            supabase.channel('custom-all-channel')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'processos_arquivados' }, loadProcessos)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'desarquivamentos' }, loadDesarquivamentos)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'logs_auditoria' }, loadLogs)
+                .subscribe();
             
             const headers = document.querySelectorAll('#tabelaArquivados thead th');
             headers.forEach((th, idx, arr) => {
@@ -672,11 +783,11 @@
             
             if (abaAtual === 'arquivados') {
                 if (!paginaAtual.length) { tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;padding:20px;">Nenhum processo arquivado encontrado.</td></tr>'; } else {
-                    paginaAtual.forEach(p => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${p.numeroProcesso || ''}</td><td>${p.numVolumes || ''}</td><td>${p.interessado || ''}</td><td>${p.assunto || ''}</td><td>${p.modalidade || ''}</td><td>${p.sala || ''}</td><td>${p.estante || ''}</td><td>${p.prateleira || ''}</td><td>${p.departamento || ''}</td><td>${p.recebedor || ''}</td><td>${formatarDataTexto(p.dataEntrega)}</td><td>${p.ultimoEditor || '—'}</td><td>${formatarTimestampFirebase(p.ultimaEdicao)}</td><td><div class="acoes-cell"><button class="btn-action btn-edit" onclick="editarProcesso('${p.id}')">✏️ Editar</button><button class="btn-action btn-unarchive" onclick="abrirModalDesarquivamento('${p.id}', '${p.numeroProcesso}')">📤 Desarquivar</button><button class="btn-action btn-danger" onclick="solicitarExclusaoProcesso('${p.id}')">🗑️ Excluir</button></div></td>`; tbody.appendChild(tr); });
+                    paginaAtual.forEach(p => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${p.numeroProcesso || ''}</td><td>${p.numVolumes || ''}</td><td>${p.interessado || ''}</td><td>${p.assunto || ''}</td><td>${p.modalidade || ''}</td><td>${p.sala || ''}</td><td>${p.estante || ''}</td><td>${p.prateleira || ''}</td><td>${p.departamento || ''}</td><td>${p.recebedor || ''}</td><td>${formatarDataTexto(p.dataEntrega)}</td><td>${p.ultimoEditor || '—'}</td><td>${formatarTimestampSupabase(p.ultimaEdicao)}</td><td><div class="acoes-cell"><button class="btn-action btn-edit" onclick="editarProcesso('${p.id}')">✏️ Editar</button><button class="btn-action btn-unarchive" onclick="abrirModalDesarquivamento('${p.id}', '${p.numeroProcesso}')">📤 Desarquivar</button><button class="btn-action btn-danger" onclick="solicitarExclusaoProcesso('${p.id}')">🗑️ Excluir</button></div></td>`; tbody.appendChild(tr); });
                 }
             } else {
                 if (!paginaAtual.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;">Nenhum desarquivamento registrado.</td></tr>'; } else {
-                    paginaAtual.forEach(d => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${d.numeroProcesso || ''}</td><td>${d.qtdVolumes || ''}</td><td>${d.departamentoSolicitante || ''}</td><td>${d.responsavel || ''}</td><td>${d.docAutorizacao || ''}</td><td>${d.seiTermo || ''}</td><td>${d.funcionarioCIPRO || ''}</td><td>${formatarTimestampFirebase(d.dataSolicitacao)}</td><td><div class="acoes-cell"><button class="btn-action btn-termo" onclick="gerarTermoById('${d.id}')">📄 Termo</button><div id="confirmDelD_${d.id}" style="display:none;" class="confirm-delete">Devolver ao Arquivo?<br><button class="btn-confirm-yes" onclick="devolverProcessoAoArquivo('${d.id}')">Sim</button><button class="btn-confirm-no" onclick="document.getElementById('confirmDelD_${d.id}').style.display='none'">Não</button></div><button class="btn-action btn-danger" onclick="document.getElementById('confirmDelD_${d.id}').style.display='block'" style="background-color:var(--unarchive-color);">↩️ Devolver</button></div></td>`; tbody.appendChild(tr); });
+                    paginaAtual.forEach(d => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${d.numeroProcesso || ''}</td><td>${d.qtdVolumes || ''}</td><td>${d.departamentoSolicitante || ''}</td><td>${d.responsavel || ''}</td><td>${d.docAutorizacao || ''}</td><td>${d.seiTermo || ''}</td><td>${d.funcionarioCIPRO || ''}</td><td>${formatarTimestampSupabase(d.dataSolicitacao)}</td><td><div class="acoes-cell"><button class="btn-action btn-termo" onclick="gerarTermoById('${d.id}')">📄 Termo</button><div id="confirmDelD_${d.id}" style="display:none;" class="confirm-delete">Devolver ao Arquivo?<br><button class="btn-confirm-yes" onclick="devolverProcessoAoArquivo('${d.id}')">Sim</button><button class="btn-confirm-no" onclick="document.getElementById('confirmDelD_${d.id}').style.display='none'">Não</button></div><button class="btn-action btn-danger" onclick="document.getElementById('confirmDelD_${d.id}').style.display='block'" style="background-color:var(--unarchive-color);">↩️ Devolver</button></div></td>`; tbody.appendChild(tr); });
                 }
             }
             renderPaginacao(tp);
@@ -692,10 +803,22 @@
             try {
                 if (id) {
                     const nomeEditor = document.getElementById('nomeEditor').value.trim(); if (!nomeEditor) { showMessage("Informe o nome de quem está editando.", "error"); return; }
-                    const dadosAntes = todosProcessos.find(p => p.id === id); dadosForm.ultimoEditor = nomeEditor; dadosForm.ultimaEdicao = serverTimestamp();
-                    await updateDoc(doc(db, "processos_arquivados", id), dadosForm); registrarLog('EDICAO', `Processo ${dadosForm.numeroProcesso} editado.`, 'processos_arquivados', id, dadosAntes, dadosForm); showMessage("Processo atualizado com sucesso!", "success"); cancelarEdicao();
+                    const dadosAntes = todosProcessos.find(p => p.id === id); dadosForm.ultimoEditor = nomeEditor; dadosForm.ultimaEdicao = new Date().toISOString();
+                    
+                    const { error } = await supabase.from('processos_arquivados').update(dadosForm).eq('id', id);
+                    if (error) throw error;
+                    
+                    registrarLog('EDICAO', `Processo ${dadosForm.numeroProcesso} editado.`, 'processos_arquivados', id, dadosAntes, dadosForm); 
+                    showMessage("Processo atualizado com sucesso!", "success"); 
+                    cancelarEdicao();
                 } else {
-                    dadosForm.criadoEm = serverTimestamp(); const docRef = await addDoc(collection(db, "processos_arquivados"), dadosForm); registrarLog('CRIACAO', `Processo ${dadosForm.numeroProcesso} criado.`, 'processos_arquivados', docRef.id, null, dadosForm); showMessage("Processo cadastrado com sucesso!", "success"); processForm.reset();
+                    dadosForm.criadoEm = new Date().toISOString(); 
+                    const { data: newDoc, error } = await supabase.from('processos_arquivados').insert([dadosForm]).select();
+                    if (error) throw error;
+                    
+                    registrarLog('CRIACAO', `Processo ${dadosForm.numeroProcesso} criado.`, 'processos_arquivados', newDoc[0].id, null, dadosForm); 
+                    showMessage("Processo cadastrado com sucesso!", "success"); 
+                    processForm.reset();
                 }
             } catch (error) { console.error(error); showMessage("Erro ao salvar processo: " + error.message, "error"); }
         });
@@ -736,7 +859,8 @@
             const obs = document.getElementById('obsExclusao').value.trim();
 
             try {
-                await deleteDoc(doc(db, "processos_arquivados", idProcessoParaExcluir));
+                const { error } = await supabase.from('processos_arquivados').delete().eq('id', idProcessoParaExcluir);
+                if (error) throw error;
                 
                 const dadosAuditoriaAntes = {
                     ...processo,
@@ -756,11 +880,15 @@
         desarquivamentoForm.addEventListener('submit', async (e) => {
             e.preventDefault(); const processoId = document.getElementById('desarqProcessoId').value; const numProc = document.getElementById('desarqNumeroProcesso').value; const qtdVol = parseInt(document.getElementById('desarqQtdVolumes').value) || 0;
             let volumes = []; for(let i=1; i<=qtdVol; i++) { const inputPag = document.getElementById(`desarqPagVol${i}`); volumes.push({ volume: i, paginas: parseInt(inputPag?.value) || 0 }); }
-            const dadosDesarq = { processoId, numeroProcesso: numProc, departamentoSolicitante: document.getElementById('desarqDepartamento').value.trim().toUpperCase(), responsavel: document.getElementById('desarqResponsavel').value.trim().toUpperCase(), docAutorizacao: document.getElementById('desarqDocumento').value.trim().toUpperCase(), seiTermo: document.getElementById('desarqSei').value.trim().toUpperCase(), funcionarioCIPRO: document.getElementById('desarqFuncionario').value, qtdVolumes: qtdVol, volumesDetalhes: volumes, dataSolicitacao: serverTimestamp() };
+            const dadosDesarq = { processoId, numeroProcesso: numProc, departamentoSolicitante: document.getElementById('desarqDepartamento').value.trim().toUpperCase(), responsavel: document.getElementById('desarqResponsavel').value.trim().toUpperCase(), docAutorizacao: document.getElementById('desarqDocumento').value.trim().toUpperCase(), seiTermo: document.getElementById('desarqSei').value.trim().toUpperCase(), funcionarioCIPRO: document.getElementById('desarqFuncionario').value, qtdVolumes: qtdVol, volumesDetalhes: volumes, dataSolicitacao: new Date().toISOString() };
             try {
                 const dadosAntes = todosProcessos.find(p=>p.id===processoId);
-                await addDoc(collection(db, "desarquivamentos"), dadosDesarq);
-                await deleteDoc(doc(db, "processos_arquivados", processoId));
+                const { error: errInsert } = await supabase.from('desarquivamentos').insert([dadosDesarq]);
+                if (errInsert) throw errInsert;
+                
+                const { error: errDelete } = await supabase.from('processos_arquivados').delete().eq('id', processoId);
+                if (errDelete) throw errDelete;
+                
                 registrarLog('DESARQUIVAMENTO', `Processo ${numProc} desarquivado.`, 'processos_arquivados', processoId, dadosAntes, dadosDesarq);
                 fecharModalDesarquivamento(); showMessage("Desarquivamento registrado e processo movido!", "success"); gerarTermoPDF(dadosDesarq);
             } catch (error) { console.error(error); showMessage("Erro: " + error.message, "error"); }
@@ -774,9 +902,14 @@
                 let dadosParaRestaurar = {};
                 if (logOriginal && logOriginal.dadosAntes) { dadosParaRestaurar = { ...logOriginal.dadosAntes }; delete dadosParaRestaurar.id; }
                 else { dadosParaRestaurar = { numeroProcesso: desarq.numeroProcesso, numVolumes: desarq.qtdVolumes, departamento: desarq.departamentoSolicitante, recebedor: "Devolvido via cancelamento" }; }
-                const novaRef = await addDoc(collection(db, "processos_arquivados"), dadosParaRestaurar);
-                await deleteDoc(doc(db, "desarquivamentos", id));
-                registrarLog('DEVOLUCAO_ARQUIVO', `Processo ${desarq.numeroProcesso} devolvido ao arquivo.`, 'processos_arquivados', novaRef.id, null, dadosParaRestaurar);
+                
+                const { data: newDoc, error: errInsert } = await supabase.from('processos_arquivados').insert([dadosParaRestaurar]).select();
+                if (errInsert) throw errInsert;
+                
+                const { error: errDelete } = await supabase.from('desarquivamentos').delete().eq('id', id);
+                if (errDelete) throw errDelete;
+                
+                registrarLog('DEVOLUCAO_ARQUIVO', `Processo ${desarq.numeroProcesso} devolvido ao arquivo.`, 'processos_arquivados', newDoc[0].id, null, dadosParaRestaurar);
                 showMessage("Desarquivamento cancelado! Processo retornou ao acervo.", "success");
             } catch (error) { console.error(error); showMessage("Erro ao devolver processo: " + error.message, "error"); }
         };
@@ -784,108 +917,108 @@
         window.gerarTermoById = function(id) { const dados = todosDesarquivamentos.find(d => d.id === id); if (dados) gerarTermoPDF(dados); };
         
         function gerarTermoPDF(dados) {
-    const { jsPDF } = window.jspdf; 
-    const doc = new jsPDF('p', 'mm', 'a4'); 
-    const pageWidth = doc.internal.pageSize.getWidth(); 
-    const margin = 20; 
-    let y = 15;
+            const { jsPDF } = window.jspdf; 
+            const doc = new jsPDF('p', 'mm', 'a4'); 
+            const pageWidth = doc.internal.pageSize.getWidth(); 
+            const margin = 20; 
+            let y = 15;
 
-    const addWrappedText = (text, x, currentY, lineHeight = 5) => { 
-        const lines = doc.splitTextToSize(text, pageWidth - (margin * 2) - (x - margin)); 
-        doc.text(lines, x, currentY); 
-        return currentY + (lines.length * lineHeight); 
-    };
+            const addWrappedText = (text, x, currentY, lineHeight = 5) => { 
+                const lines = doc.splitTextToSize(text, pageWidth - (margin * 2) - (x - margin)); 
+                doc.text(lines, x, currentY); 
+                return currentY + (lines.length * lineHeight); 
+            };
 
-    // Cabeçalho
-    doc.setFontSize(10); doc.setFont(undefined, 'bold'); 
-    doc.text("CIPRO - COMITÊ INTERNO DE SERVIÇO DE PROTOCOLO", margin, y); y += 5; 
-    doc.setFont(undefined, 'normal'); 
-    doc.text("Localizado: 1º Subsolo bloco \"A\" do Prédio de Administração IPEN/CNEN", margin, y); y += 5; 
-    doc.text("Ramais: 5551 e 8180", margin, y); y += 15;
+            // Cabeçalho
+            doc.setFontSize(10); doc.setFont(undefined, 'bold'); 
+            doc.text("CIPRO - COMITÊ INTERNO DE SERVIÇO DE PROTOCOLO", margin, y); y += 5; 
+            doc.setFont(undefined, 'normal'); 
+            doc.text("Localizado: 1º Subsolo bloco \"A\" do Prédio de Administração IPEN/CNEN", margin, y); y += 5; 
+            doc.text("Ramais: 5551 e 8180", margin, y); y += 15;
 
-    // Título
-    doc.setFontSize(14); doc.setFont(undefined, 'bold'); 
-    doc.text("TERMO DE ENTREGA E RECEBIMENTO", pageWidth / 2, y, { align: "center" }); y += 8; 
-    doc.text("DE PROCESSO FÍSICO", pageWidth / 2, y, { align: "center" }); y += 15;
+            // Título
+            doc.setFontSize(14); doc.setFont(undefined, 'bold'); 
+            doc.text("TERMO DE ENTREGA E RECEBIMENTO", pageWidth / 2, y, { align: "center" }); y += 8; 
+            doc.text("DE PROCESSO FÍSICO", pageWidth / 2, y, { align: "center" }); y += 15;
 
-    // Seção 1
-    doc.setFontSize(11); doc.text("1. IDENTIFICAÇÃO DO PROCESSO", margin, y); y += 8; 
-    doc.setFont(undefined, 'normal'); 
-    doc.text(`Número do Processo: ${dados.numeroProcesso || ''}`, margin, y); y += 6; 
-    doc.text(`Departamento Solicitante: ${dados.departamentoSolicitante || ''}`, margin, y); y += 6; 
-    doc.text(`Pessoa Responsável: ${dados.responsavel || ''}`, margin, y); y += 6; 
-    doc.text(`Documento de Autorização: ${dados.docAutorizacao || ''}`, margin, y); y += 6; 
-    doc.text(`Nº SEI do Termo: ${dados.seiTermo || ''}`, margin, y); y += 12;
+            // Seção 1
+            doc.setFontSize(11); doc.text("1. IDENTIFICAÇÃO DO PROCESSO", margin, y); y += 8; 
+            doc.setFont(undefined, 'normal'); 
+            doc.text(`Número do Processo: ${dados.numeroProcesso || ''}`, margin, y); y += 6; 
+            doc.text(`Departamento Solicitante: ${dados.departamentoSolicitante || ''}`, margin, y); y += 6; 
+            doc.text(`Pessoa Responsável: ${dados.responsavel || ''}`, margin, y); y += 6; 
+            doc.text(`Documento de Autorização: ${dados.docAutorizacao || ''}`, margin, y); y += 6; 
+            doc.text(`Nº SEI do Termo: ${dados.seiTermo || ''}`, margin, y); y += 12;
 
-    // Seção 2 - Quantificação de Volumes e Páginas (Formatado em 3 colunas)
-    doc.setFont(undefined, 'bold'); doc.text("2. QUANTIFICAÇÃO DE VOLUMES E PÁGINAS", margin, y); y += 8; 
-    doc.setFont(undefined, 'normal'); 
-    doc.text(`Total de Volumes Retirados: ${dados.qtdVolumes || 0}`, margin, y); y += 6;
-    
-    let totalPaginas = 0; 
-    if (dados.volumesDetalhes && dados.volumesDetalhes.length > 0) { 
-        const colWidth = 55; // Largura das colunas
-        const startX = margin + 5;
-        const startY = y;
-        let totalRows = 0;
+            // Seção 2 - Quantificação de Volumes e Páginas (Formatado em 3 colunas)
+            doc.setFont(undefined, 'bold'); doc.text("2. QUANTIFICAÇÃO DE VOLUMES E PÁGINAS", margin, y); y += 8; 
+            doc.setFont(undefined, 'normal'); 
+            doc.text(`Total de Volumes Retirados: ${dados.qtdVolumes || 0}`, margin, y); y += 6;
+            
+            let totalPaginas = 0; 
+            if (dados.volumesDetalhes && dados.volumesDetalhes.length > 0) { 
+                const colWidth = 55; // Largura das colunas
+                const startX = margin + 5;
+                const startY = y;
+                let totalRows = 0;
 
-        dados.volumesDetalhes.forEach((v, index) => { 
-            const col = index % 3; // Define a coluna (0, 1 ou 2)
-            const row = Math.floor(index / 3); // Define a linha
-            totalRows = row + 1;
+                dados.volumesDetalhes.forEach((v, index) => { 
+                    const col = index % 3; // Define a coluna (0, 1 ou 2)
+                    const row = Math.floor(index / 3); // Define a linha
+                    totalRows = row + 1;
 
-            const posX = startX + (col * colWidth);
-            const posY = startY + (row * 6);
+                    const posX = startX + (col * colWidth);
+                    const posY = startY + (row * 6);
 
-            doc.text(`- Volume ${v.volume}: ${v.paginas} pág(s)`, posX, posY); 
-            totalPaginas += v.paginas; 
-        }); 
+                    doc.text(`- Volume ${v.volume}: ${v.paginas} pág(s)`, posX, posY); 
+                    totalPaginas += v.paginas; 
+                }); 
 
-        y = startY + (totalRows * 6) + 2; 
-    }
-    
-    doc.setFont(undefined, 'bold'); 
-    doc.text(`Total Geral de Páginas: ${totalPaginas}`, margin, y); y += 12;
+                y = startY + (totalRows * 6) + 2; 
+            }
+            
+            doc.setFont(undefined, 'bold'); 
+            doc.text(`Total Geral de Páginas: ${totalPaginas}`, margin, y); y += 12;
 
-    // Seção 3
-    doc.setFont(undefined, 'bold'); doc.text("3. DECLARAÇÃO DE ENTREGA E RETIRADA (CARGA)", margin, y); y += 8; 
-    doc.setFont(undefined, 'normal');
-    y = addWrappedText(`Pelo presente instrumento, o Comitê Interno de Serviço de Protocolo (CIPRO) realiza a entrega física dos autos do processo epigrafado, contendo ${totalPaginas} folha(s) numeradas e rubricadas, distribuída(s) em ${dados.qtdVolumes || 0} volume(s), em perfeito estado de conservação.`, margin, y, 5) + 5;
-    y = addWrappedText(`A colaboradora abaixo identificada, devidamente autorizada pelo setor solicitante (${dados.departamentoSolicitante || ''}), declara para os devidos fins que:`, margin, y, 5) + 5;
-    y = addWrappedText(`I - Recebeu, nesta data, a totalidade física de (${dados.qtdVolumes || 0}) volume(s) dos autos descritos acima;`, margin + 5, y, 5) + 3;
-    y = addWrappedText(`II - Assume integral responsabilidade pela guarda, zelo, integridade, confidencialidade e segurança das informações nele contidas;`, margin + 5, y, 5) + 3;
-    y = addWrappedText(`III - Compromete-se a restituir o respectivo processo físico a este Setor de Protocolo assim que concluída a finalidade do desarquivamento, sob as penas das normas regulamentares vigentes.`, margin + 5, y, 5) + 10;
+            // Seção 3
+            doc.setFont(undefined, 'bold'); doc.text("3. DECLARAÇÃO DE ENTREGA E RETIRADA (CARGA)", margin, y); y += 8; 
+            doc.setFont(undefined, 'normal');
+            y = addWrappedText(`Pelo presente instrumento, o Comitê Interno de Serviço de Protocolo (CIPRO) realiza a entrega física dos autos do processo epigrafado, contendo ${totalPaginas} folha(s) numeradas e rubricadas, distribuída(s) em ${dados.qtdVolumes || 0} volume(s), em perfeito estado de conservação.`, margin, y, 5) + 5;
+            y = addWrappedText(`A colaboradora abaixo identificada, devidamente autorizada pelo setor solicitante (${dados.departamentoSolicitante || ''}), declara para os devidos fins que:`, margin, y, 5) + 5;
+            y = addWrappedText(`I - Recebeu, nesta data, a totalidade física de (${dados.qtdVolumes || 0}) volume(s) dos autos descritos acima;`, margin + 5, y, 5) + 3;
+            y = addWrappedText(`II - Assume integral responsabilidade pela guarda, zelo, integridade, confidencialidade e segurança das informações nele contidas;`, margin + 5, y, 5) + 3;
+            y = addWrappedText(`III - Compromete-se a restituir o respectivo processo físico a este Setor de Protocolo assim que concluída a finalidade do desarquivamento, sob as penas das normas regulamentares vigentes.`, margin + 5, y, 5) + 10;
 
-    doc.setFontSize(9); doc.setFont(undefined, 'italic'); 
-    doc.text("(Este documento será assinado eletronicamente via Sistema Eletrônico de Informações - SEI)", margin, y); y += 12;
+            doc.setFontSize(9); doc.setFont(undefined, 'italic'); 
+            doc.text("(Este documento será assinado eletronicamente via Sistema Eletrônico de Informações - SEI)", margin, y); y += 12;
 
-    // Seção 4 - ASSINATURAS (Apenas 'ASSINATURAS' com nomes e setores alinhados)
-    doc.setFont(undefined, 'bold'); doc.setFontSize(11); 
-    doc.text("4. ASSINATURAS", margin, y); y += 8;
-    
-    doc.setFontSize(10);
-    
-    // Coluna 1: CIPRO (Entregue por)
-    doc.setFont(undefined, 'bold'); 
-    doc.text("Entregue por:", margin, y); 
-    doc.setFont(undefined, 'normal'); 
-    doc.text(`${dados.funcionarioCIPRO || 'CIPRO / IPEN'}`, margin, y + 5); 
-    doc.setFontSize(8); doc.setFont(undefined, 'italic');
-    doc.text("CIPRO / IPEN", margin, y + 9);
+            // Seção 4 - ASSINATURAS (Apenas 'ASSINATURAS' com nomes e setores alinhados)
+            doc.setFont(undefined, 'bold'); doc.setFontSize(11); 
+            doc.text("4. ASSINATURAS", margin, y); y += 8;
+            
+            doc.setFontSize(10);
+            
+            // Coluna 1: CIPRO (Entregue por)
+            doc.setFont(undefined, 'bold'); 
+            doc.text("Entregue por:", margin, y); 
+            doc.setFont(undefined, 'normal'); 
+            doc.text(`${dados.funcionarioCIPRO || 'CIPRO / IPEN'}`, margin, y + 5); 
+            doc.setFontSize(8); doc.setFont(undefined, 'italic');
+            doc.text("CIPRO / IPEN", margin, y + 9);
 
-    // Coluna 2: Solicitante / Responsável (Recebido por)
-    const col2X = margin + 95;
-    doc.setFontSize(10); doc.setFont(undefined, 'bold'); 
-    doc.text("Recebido por:", col2X, y); 
-    doc.setFont(undefined, 'normal'); 
-    doc.text(`${dados.responsavel || ''}`, col2X, y + 5); 
-    doc.setFontSize(8); doc.setFont(undefined, 'italic');
-    if (dados.departamentoSolicitante) {
-        doc.text(`${dados.departamentoSolicitante}`, col2X, y + 9);
-    }
+            // Coluna 2: Solicitante / Responsável (Recebido por)
+            const col2X = margin + 95;
+            doc.setFontSize(10); doc.setFont(undefined, 'bold'); 
+            doc.text("Recebido por:", col2X, y); 
+            doc.setFont(undefined, 'normal'); 
+            doc.text(`${dados.responsavel || ''}`, col2X, y + 5); 
+            doc.setFontSize(8); doc.setFont(undefined, 'italic');
+            if (dados.departamentoSolicitante) {
+                doc.text(`${dados.departamentoSolicitante}`, col2X, y + 9);
+            }
 
-    doc.save(`Termo_Desarquivamento_${dados.numeroProcesso ? dados.numeroProcesso.replace(/[\/\\:]/g, '_') : 'processo'}.pdf`);
-}
+            doc.save(`Termo_Desarquivamento_${dados.numeroProcesso ? dados.numeroProcesso.replace(/[\/\\:]/g, '_') : 'processo'}.pdf`);
+        }
     </script>
 </body>
 </html>

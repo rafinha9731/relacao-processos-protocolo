@@ -10,6 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <!-- BIBLIOTECA DO SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- BIBLIOTECA DE GRÁFICOS (DASHBOARD) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <style>
         :root {
@@ -102,6 +104,70 @@
             font-weight: bold; font-size: clamp(11px, 1vw, 14px);
         }
         .logout-btn:hover { background-color: #c82333; }
+
+        /* ===== NAVEGAÇÃO ENTRE PÁGINAS ===== */
+        .main-nav {
+            display: flex; gap: 6px;
+            margin-bottom: clamp(15px, 2vw, 25px);
+            background: #fff; padding: 6px;
+            border-radius: 10px; border: 1px solid var(--border-color);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            overflow-x: auto;
+        }
+        .nav-btn {
+            background: transparent; color: var(--text-color); border: none;
+            padding: clamp(8px, 1vw, 12px) clamp(14px, 1.8vw, 26px);
+            border-radius: 8px; font-size: clamp(13px, 1.15vw, 16px);
+            font-weight: bold; cursor: pointer; white-space: nowrap;
+            display: flex; align-items: center; gap: 7px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .nav-btn:hover { background: #eef2f5; }
+        .nav-btn.active { background: var(--primary-color); color: #fff; }
+        .nav-btn .nav-badge {
+            background: var(--danger-color); color: #fff;
+            font-size: 10px; font-weight: bold; border-radius: 10px;
+            padding: 1px 7px; display: none;
+        }
+        .nav-btn.active .nav-badge { background: rgba(255,255,255,0.25); }
+
+        .page { display: none; }
+        .page.active { display: block; animation: fadeInPage 0.25s ease; }
+        @keyframes fadeInPage { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+        /* ===== DASHBOARD ===== */
+        .dash-header-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: clamp(12px, 1.5vw, 20px); }
+        .dash-header-row h2 { font-size: var(--section-font); margin: 0; color: var(--primary-color); }
+        .dash-updated { font-size: clamp(10px, 0.85vw, 12px); color: #888; font-style: italic; }
+
+        .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: clamp(10px, 1.2vw, 18px); }
+        .dash-card {
+            border-radius: 12px; padding: clamp(14px, 1.6vw, 22px); color: #fff;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+        }
+        .dash-card:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+        .dash-card .dc-icon { font-size: clamp(18px, 1.6vw, 24px); }
+        .dash-card .dc-num { font-size: clamp(30px, 3.2vw, 46px); font-weight: 800; line-height: 1.1; margin-top: 4px; }
+        .dash-card .dc-label { font-size: clamp(12px, 1vw, 14px); font-weight: 600; margin-top: 4px; }
+        .dash-card .dc-sub { font-size: clamp(10px, 0.85vw, 12px); opacity: 0.92; margin-top: 5px; }
+        .card-blue { background: linear-gradient(135deg, #0056b3, #0077e6); }
+        .card-green { background: linear-gradient(135deg, #2e7d32, #43a047); }
+        .card-red { background: linear-gradient(135deg, #b71c1c, #e53935); }
+        .card-teal { background: linear-gradient(135deg, #00695c, #17a2b8); }
+
+        .dash-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: clamp(10px, 1.2vw, 18px); margin-top: clamp(12px, 1.5vw, 20px); }
+        .chart-box { background: #fff; border: 1px solid var(--border-color); border-radius: 10px; padding: clamp(12px, 1.4vw, 18px); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .chart-box h3 { margin: 0 0 12px 0; font-size: clamp(13px, 1.1vw, 16px); color: var(--text-color); }
+        .chart-wrap { position: relative; height: 270px; }
+
+        .dash-lista { margin-top: clamp(12px, 1.5vw, 20px); background: #fff; border: 1px solid var(--border-color); border-radius: 10px; padding: clamp(12px, 1.4vw, 18px); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .dash-lista-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .dash-lista-header h3 { margin: 0; font-size: clamp(13px, 1.1vw, 16px); color: #b71c1c; }
+        .btn-ver-todos { background: var(--primary-color); color: #fff; border: none; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: clamp(11px, 0.9vw, 13px); }
+        .btn-ver-todos:hover { background: #004494; }
+        .dash-lista .table-container { max-height: 340px; overflow-y: auto; }
+        .dash-mini-td { font-size: clamp(11px, 0.95vw, 13px); }
 
         .form-section {
             background-color: #eef2f5;
@@ -330,6 +396,23 @@
         .vol-label { font-weight: bold; font-size: clamp(11px, 0.95vw, 13px); color: var(--text-color); min-width: clamp(80px, 10vw, 110px); white-space: nowrap; }
         .vol-item input { flex: 1; padding: var(--input-padding); font-size: var(--input-font); border: 1px solid var(--border-color); border-radius: 4px; outline: none; box-sizing: border-box; }
         .vol-item input:focus { border-color: #2d6a2d; }
+
+        /* ===== CONTROLE DE VOLUMES FALTANTES ===== */
+        .volumes-cadastro { display: none; background-color: #e8f0fe; border: 1px solid #b2c8e8; border-radius: 6px; padding: clamp(10px, 1.2vw, 16px); margin-top: clamp(6px, 0.8vw, 10px); animation: fadeInVol 0.3s ease; }
+        .volumes-cadastro .vol-title { font-weight: bold; font-size: clamp(12px, 1vw, 14px); color: #2d5a8a; margin-bottom: clamp(6px, 0.8vw, 10px); padding-bottom: 4px; border-bottom: 1px dashed #b2c8e8; }
+        .vol-check-grid { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+        .vol-check-item { display: flex; align-items: center; gap: 5px; font-weight: bold; font-size: clamp(12px, 1vw, 14px); cursor: pointer; background: #fff; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 10px; margin: 0; }
+        .vol-check-item input[type="checkbox"] { width: auto; transform: scale(1.25); cursor: pointer; accent-color: var(--primary-color); margin: 0; }
+        .aviso-volumes { margin-top: 10px; padding: 8px 12px; border-radius: 4px; font-weight: bold; font-size: clamp(12px, 1vw, 14px); }
+        .aviso-ok { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .aviso-falta { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .linha-incompleta td { background-color: #fff8e1 !important; }
+        #tabelaArquivados tr.linha-incompleta:hover td { background-color: #ffe9b8 !important; }
+        .badge-faltantes { display: inline-block; background-color: #e53935; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
+        .badge-completo { display: inline-block; background-color: #2e7d32; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
+        .filtro-incompletos { display: flex; align-items: center; gap: 5px; font-weight: bold; font-size: clamp(11px, 1vw, 14px); cursor: pointer; white-space: nowrap; }
+        .filtro-incompletos input { width: auto; transform: scale(1.2); accent-color: #e53935; cursor: pointer; }
+        .contador-badge { font-size: clamp(10px, 0.9vw, 13px); background: #e53935; color: #fff; border-radius: 10px; padding: 2px 10px; font-weight: bold; display: none; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -361,75 +444,160 @@
             </div>
         </div>
 
+        <!-- NAVEGAÇÃO PRINCIPAL -->
+        <nav class="main-nav">
+            <button class="nav-btn active" data-page="dashboard" onclick="navegarPara('dashboard')">📊 Dashboard <span id="navBadgeFaltantes" class="nav-badge"></span></button>
+            <button class="nav-btn" data-page="cadastro" onclick="navegarPara('cadastro')">📝 Cadastro / Importação</button>
+            <button class="nav-btn" data-page="historico" onclick="navegarPara('historico')">📚 Histórico de Processos</button>
+        </nav>
+
         <div id="feedbackMessage" class="message"></div>
 
-        <div class="form-section">
-            <h2 id="formTitle" style="font-size: var(--section-font); margin-top: 0;">Novo Cadastro de Processo</h2>
-            <form id="processForm">
-                <input type="hidden" id="docId" value="">
-                <div id="editorField">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label for="nomeEditor">Nome de quem está editando <span class="required">*</span></label>
-                        <input type="text" id="nomeEditor" placeholder="Obrigatório para salvar alterações">
-                    </div>
+        <!-- ================================================== -->
+        <!-- PÁGINA 1: DASHBOARD (VISÃO GERAL)                  -->
+        <!-- ================================================== -->
+        <div class="page active" id="page-dashboard">
+            <div class="dash-header-row">
+                <h2>📊 Visão Geral do Acervo</h2>
+                <span id="dashAtualizado" class="dash-updated"></span>
+            </div>
+
+            <div class="dash-cards">
+                <div class="dash-card card-blue" onclick="irParaHistorico('todos')" title="Ver todos os processos arquivados">
+                    <div class="dc-icon">📚</div>
+                    <div class="dc-num" id="dashTotalProcessos">0</div>
+                    <div class="dc-label">Processos Arquivados</div>
+                    <div class="dc-sub" id="dashTotalVolumes">0 volumes no acervo</div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group"><label for="numeroProcesso">Nº do Processo / SEI <span class="required">*</span></label><input type="text" id="numeroProcesso" required placeholder="Ex: 2023/00123"></div>
-                    <div class="form-group"><label for="numVolumes">Nº de Volumes Entregues <span class="required">*</span></label><input type="number" id="numVolumes" min="1" required placeholder="Ex: 2"></div>
+                <div class="dash-card card-green" onclick="irParaHistorico('completos')" title="Ver processos com acervo completo">
+                    <div class="dc-icon">✅</div>
+                    <div class="dc-num" id="dashCompletos">0</div>
+                    <div class="dc-label">Acervo Completo</div>
+                    <div class="dc-sub" id="dashPctCompleto">0% do total</div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group"><label for="interessado">Interessado</label><input type="text" id="interessado" placeholder="Ex: João da Silva"></div>
-                    <div class="form-group"><label for="assunto">Assunto</label><input type="text" id="assunto" placeholder="Ex: Compra de equipamentos"></div>
-                    <div class="form-group"><label for="modalidade">Modalidade</label><input type="text" id="modalidade" placeholder="Ex: Pregão, Contrato..."></div>
+                <div class="dash-card card-red" onclick="irParaHistorico('faltantes')" title="Ver processos com volumes faltantes">
+                    <div class="dc-icon">⚠️</div>
+                    <div class="dc-num" id="dashFaltantes">0</div>
+                    <div class="dc-label">Com Volumes Faltantes</div>
+                    <div class="dc-sub" id="dashVolFaltantes">0 volume(s) ausente(s)</div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group"><label for="sala">Sala</label><input type="number" id="sala" placeholder="Apenas números (Ex: 101)"></div>
-                    <div class="form-group"><label for="estante">Estante</label><input type="text" id="estante" placeholder="Ex: A ou 1"></div>
-                    <div class="form-group"><label for="prateleira">Prateleira</label><input type="text" id="prateleira" placeholder="Ex: 3 ou B"></div>
+                <div class="dash-card card-teal" onclick="irParaHistorico('desarquivados')" title="Ver histórico de desarquivamentos">
+                    <div class="dc-icon">📤</div>
+                    <div class="dc-num" id="dashDesarquivados">0</div>
+                    <div class="dc-label">Desarquivamentos</div>
+                    <div class="dc-sub" id="dashVolDesarq">0 volume(s) fora do arquivo</div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group"><label for="departamento">Departamento que Entregou <span class="required">*</span></label><input type="text" id="departamento" required placeholder="Ex: Biblioteca"></div>
-                    <div class="form-group"><label for="recebedor">Quem Recebeu o Processo <span class="required">*</span></label><input type="text" id="recebedor" required placeholder="Ex: João da Silva"></div>
+            </div>
+
+            <div class="dash-charts">
+                <div class="chart-box">
+                    <h3>🍩 Situação do Acervo</h3>
+                    <div class="chart-wrap"><canvas id="chartAcervo"></canvas></div>
                 </div>
-                <div class="form-group"><label for="dataEntrega">Data da Entrega (Opcional)</label><input type="date" id="dataEntrega"></div>
-                <div class="form-actions-row">
-                    <div class="left-buttons">
-                        <button type="submit" id="submitBtn">Cadastrar Processo</button>
-                        <button type="button" id="cancelBtn" class="btn-cancel" style="display: none;">Cancelar Edição</button>
-                    </div>
-                    <div class="right-buttons">
-                        <button type="button" id="btnUpload" class="btn-download btn-excel">📂 Importar em Massa</button>
-                        <button type="button" id="btnModelo" class="btn-small-modelo">📄 Baixar Modelo CSV</button>
-                        <input type="file" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display: none;">
-                    </div>
+                <div class="chart-box">
+                    <h3>📈 Movimentação — Últimos 6 Meses</h3>
+                    <div class="chart-wrap"><canvas id="chartMovimento"></canvas></div>
                 </div>
-            </form>
+            </div>
+
+            <div class="dash-lista">
+                <div class="dash-lista-header">
+                    <h3>⚠️ Processos com Volumes Faltantes</h3>
+                    <button class="btn-ver-todos" onclick="irParaHistorico('faltantes')">Ver todos no Histórico →</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Nº do Processo</th><th>Vols. do Processo</th><th>Faltando</th><th>Localização (Sala/Rua/Estante/Prateleira)</th><th>Ações</th></tr></thead>
+                        <tbody id="dashFaltantesBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
-        <div class="list-section">
-            <div class="list-header">
-                <h2>Gestão de Processos</h2>
-                <div class="list-actions">
-                    <button id="btnExcel" class="btn-download btn-excel">📥 Exportar Excel</button>
-                    <button id="btnPDF" class="btn-download btn-pdf">📄 Exportar PDF</button>
-                    <div class="search-box"><input type="text" id="searchInput" placeholder="Buscar..."></div>
+        <!-- ================================================== -->
+        <!-- PÁGINA 2: CADASTRO / IMPORTAÇÃO                    -->
+        <!-- ================================================== -->
+        <div class="page" id="page-cadastro">
+            <div class="form-section">
+                <h2 id="formTitle" style="font-size: var(--section-font); margin-top: 0;">Novo Cadastro de Processo</h2>
+                <form id="processForm">
+                    <input type="hidden" id="docId" value="">
+                    <div id="editorField">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="nomeEditor">Nome de quem está editando <span class="required">*</span></label>
+                            <input type="text" id="nomeEditor" placeholder="Obrigatório para salvar alterações">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="numeroProcesso">Nº do Processo / SEI <span class="required">*</span></label><input type="text" id="numeroProcesso" required placeholder="Ex: 2023/00123"></div>
+                        <div class="form-group"><label for="numVolumes">Nº de Volumes do Processo <span class="required">*</span></label><input type="number" id="numVolumes" min="1" required placeholder="Ex: 5"></div>
+                    </div>
+                    <div class="volumes-cadastro" id="volumesCadastro">
+                        <div class="vol-title">📦 Volumes presentes no Arquivo — <span style="font-weight:normal;">desmarque o(s) volume(s) que estão FALTANDO</span></div>
+                        <div id="volumesCheckContainer" class="vol-check-grid"></div>
+                        <div id="avisoVolumesCadastro" class="aviso-volumes"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="interessado">Interessado</label><input type="text" id="interessado" placeholder="Ex: João da Silva"></div>
+                        <div class="form-group"><label for="assunto">Assunto</label><input type="text" id="assunto" placeholder="Ex: Compra de equipamentos"></div>
+                        <div class="form-group"><label for="modalidade">Modalidade</label><input type="text" id="modalidade" placeholder="Ex: Pregão, Contrato..."></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="sala">Sala</label><input type="number" id="sala" placeholder="Apenas números (Ex: 101)"></div>
+                        <div class="form-group"><label for="rua">Rua</label><input type="text" id="rua" placeholder="Ex: Amazonas"></div>
+                        <div class="form-group"><label for="estante">Estante</label><input type="text" id="estante" placeholder="Ex: A ou 1"></div>
+                        <div class="form-group"><label for="prateleira">Prateleira</label><input type="text" id="prateleira" placeholder="Ex: 3 ou B"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="departamento">Departamento que Entregou <span class="required">*</span></label><input type="text" id="departamento" required placeholder="Ex: Biblioteca"></div>
+                        <div class="form-group"><label for="recebedor">Quem Recebeu o Processo <span class="required">*</span></label><input type="text" id="recebedor" required placeholder="Ex: João da Silva"></div>
+                    </div>
+                    <div class="form-group"><label for="dataEntrega">Data da Entrega (Opcional)</label><input type="date" id="dataEntrega"></div>
+                    <div class="form-actions-row">
+                        <div class="left-buttons">
+                            <button type="submit" id="submitBtn">Cadastrar Processo</button>
+                            <button type="button" id="cancelBtn" class="btn-cancel" style="display: none;">Cancelar Edição</button>
+                        </div>
+                        <div class="right-buttons">
+                            <button type="button" id="btnUpload" class="btn-download btn-excel">📂 Importar em Massa</button>
+                            <button type="button" id="btnModelo" class="btn-small-modelo">📄 Baixar Modelo CSV</button>
+                            <input type="file" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display: none;">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================================================== -->
+        <!-- PÁGINA 3: HISTÓRICO DE PROCESSOS                   -->
+        <!-- ================================================== -->
+        <div class="page" id="page-historico">
+            <div class="list-section">
+                <div class="list-header">
+                    <h2>Gestão de Processos <span id="contadorIncompletos" class="contador-badge"></span></h2>
+                    <div class="list-actions">
+                        <button id="btnExcel" class="btn-download btn-excel">📥 Exportar Excel</button>
+                        <button id="btnPDF" class="btn-download btn-pdf">📄 Exportar PDF</button>
+                        <div class="search-box"><input type="text" id="searchInput" placeholder="Buscar..."></div>
+                        <label class="filtro-incompletos" title="Mostrar apenas processos com volumes faltando"><input type="checkbox" id="filtroIncompletos">⚠️ Só com faltantes</label>
+                    </div>
                 </div>
+                <div class="tabs-container">
+                    <button class="tab-btn active" id="tabArquivados" onclick="trocarAba('arquivados')">Processos Arquivados</button>
+                    <button class="tab-btn" id="tabDesarquivados" onclick="trocarAba('desarquivados')">Histórico de Desarquivamentos</button>
+                </div>
+                <div class="table-container" id="tableContainer">
+                    <table id="tabelaArquivados">
+                        <thead><tr><th>Nº do Processo / SEI</th><th>Volumes</th><th>Interessado</th><th>Assunto</th><th>Modalidade</th><th>Sala</th><th>Rua</th><th>Estante</th><th>Prateleira</th><th>Departamento</th><th>Recebedor</th><th>Data Entrega</th><th>Editado por</th><th>Última Edição</th><th>Situação dos Volumes</th><th>Ações</th></tr></thead>
+                        <tbody id="processTableBody"></tbody>
+                    </table>
+                    <table id="tabelaDesarquivados" style="display: none;">
+                        <thead><tr><th>Nº do Processo</th><th>Vol. Retirados</th><th>Departamento Solicitante</th><th>Pessoa Responsável</th><th>Doc. de Autorização</th><th>Nº SEI do Termo</th><th>Funcionário CIPRO</th><th>Data/Hora da Solicitação</th><th>Ações</th></tr></thead>
+                        <tbody id="desarqTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="paginationControls" class="pagination"></div>
             </div>
-            <div class="tabs-container">
-                <button class="tab-btn active" id="tabArquivados" onclick="trocarAba('arquivados')">Processos Arquivados</button>
-                <button class="tab-btn" id="tabDesarquivados" onclick="trocarAba('desarquivados')">Histórico de Desarquivamentos</button>
-            </div>
-            <div class="table-container" id="tableContainer">
-                <table id="tabelaArquivados">
-                    <thead><tr><th>Nº do Processo / SEI</th><th>Volumes</th><th>Interessado</th><th>Assunto</th><th>Modalidade</th><th>Sala</th><th>Estante</th><th>Prateleira</th><th>Departamento</th><th>Recebedor</th><th>Data Entrega</th><th>Editado por</th><th>Última Edição</th><th>Ações</th></tr></thead>
-                    <tbody id="processTableBody"></tbody>
-                </table>
-                <table id="tabelaDesarquivados" style="display: none;">
-                    <thead><tr><th>Nº do Processo</th><th>Vol. Retirados</th><th>Departamento Solicitante</th><th>Pessoa Responsável</th><th>Doc. de Autorização</th><th>Nº SEI do Termo</th><th>Funcionário CIPRO</th><th>Data/Hora da Solicitação</th><th>Ações</th></tr></thead>
-                    <tbody id="desarqTableBody"></tbody>
-                </table>
-            </div>
-            <div id="paginationControls" class="pagination"></div>
         </div>
     </div>
 
@@ -504,16 +672,25 @@
 
     <script type="module">
         // INICIALIZAÇÃO DO SUPABASE
-        const SUPABASE_URL = 'https://tvedxkxzwejjfmcufnpw.supabase.co'; // Substitua pela sua URL
-        const SUPABASE_KEY = 'sb_publishable_kTr94PqbtAFHuQycxcS_lw_C4ZAYRa2'; // Substitua pela sua chave anon public
+        const SUPABASE_URL = 'https://tvedxkxzwejjfmcufnpw.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_kTr94PqbtAFHuQycxcS_lw_C4ZAYRa2';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const loginWrapper = document.getElementById('loginWrapper'); const mainContainer = document.getElementById('mainContainer'); const loginForm = document.getElementById('loginForm'); const loginError = document.getElementById('loginError'); const logoutBtn = document.getElementById('logoutBtn'); const processForm = document.getElementById('processForm'); const tableBody = document.getElementById('processTableBody'); const desarqTableBody = document.getElementById('desarqTableBody'); const feedbackMessage = document.getElementById('feedbackMessage'); const submitBtn = document.getElementById('submitBtn'); const cancelBtn = document.getElementById('cancelBtn'); const formTitle = document.getElementById('formTitle'); const editorField = document.getElementById('editorField'); const searchInput = document.getElementById('searchInput'); const paginationControls = document.getElementById('paginationControls'); const btnExcel = document.getElementById('btnExcel'); const btnPDF = document.getElementById('btnPDF'); const btnModelo = document.getElementById('btnModelo'); const btnUpload = document.getElementById('btnUpload'); const fileInput = document.getElementById('fileInput'); const modalDesarquivamento = document.getElementById('modalDesarquivamento'); const desarquivamentoForm = document.getElementById('desarquivamentoForm'); const desarqQtdVolumes = document.getElementById('desarqQtdVolumes'); const volumesDinamicos = document.getElementById('volumesDinamicos'); const volumesPaginasContainer = document.getElementById('volumesPaginasContainer'); const btnAuditLog = document.getElementById('btnAuditLog'); const modalAuditoria = document.getElementById('modalAuditoria'); const auditFiltroTipo = document.getElementById('auditFiltroTipo'); const auditFiltroTexto = document.getElementById('auditFiltroTexto'); const auditTableBody = document.getElementById('auditTableBody'); const auditPagination = document.getElementById('auditPagination'); const auditStats = document.getElementById('auditStats'); const auditBadge = document.getElementById('auditBadge'); const btnConfirmarExclusaoDefinitiva = document.getElementById('btnConfirmarExclusaoDefinitiva');
+
+        // ===== ELEMENTOS DO CONTROLE DE VOLUMES FALTANTES =====
+        const numVolumesInput = document.getElementById('numVolumes');
+        const volumesCadastroBox = document.getElementById('volumesCadastro');
+        const volumesCheckContainer = document.getElementById('volumesCheckContainer');
+        const avisoVolumesCadastro = document.getElementById('avisoVolumesCadastro');
+        const filtroIncompletos = document.getElementById('filtroIncompletos');
 
         let todosProcessos = [], todosDesarquivamentos = [], todosLogs = [], processosFiltrados = [], logsFiltrados = [];
         let currentPage = 1, auditCurrentPage = 1, itemsPerPage = 15, auditItemsPerPage = 20, abaAtual = 'arquivados';
         let usuarioAtual = null, ipUsuario = 'Não detectado', idProcessoParaExcluir = null;
         let sortColumn = null; let sortDirection = 'asc';
+        let sistemaIniciado = false;
+        let chartAcervo = null, chartMovimento = null;
 
         async function detectarIP() { try { const r = await fetch('https://api.ipify.org?format=json'); if(r.ok) { const d = await r.json(); ipUsuario = d.ip; } } catch(e) { try { const r2 = await fetch('https://ipapi.co/json/'); if(r2.ok) { const d2 = await r2.json(); ipUsuario = d2.ip; } } catch(e2) {} } }
 
@@ -524,7 +701,7 @@
                     tipoAcao, 
                     descricao, 
                     usuarioEmail: usuarioAtual.email || 'N/A', 
-                    usuarioNome: usuarioAtual.email || 'N/A', // O Supabase não possui displayName por padrão, usando email
+                    usuarioNome: usuarioAtual.email || 'N/A',
                     ipUsuario, 
                     colecaoAfetada: colecaoAfetada || '', 
                     idDocumentoAfetado: idDocAfetado || '', 
@@ -626,7 +803,6 @@
             loginWrapper.style.display = 'flex'; 
         });
         
-        // Verifica sessão atual ao carregar a página
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
                 usuarioAtual = session.user;
@@ -640,7 +816,6 @@
             }
         });
 
-        // Ouvinte de mudança de estado de autenticação
         supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_IN') {
                 usuarioAtual = session.user;
@@ -657,7 +832,6 @@
 
         function showMessage(t, tp) { feedbackMessage.textContent = t; feedbackMessage.className = `message ${tp}`; feedbackMessage.style.display = 'block'; setTimeout(() => { feedbackMessage.style.display = 'none'; }, 5000); }
         
-        // Adaptado para formato ISO do Supabase
         function formatarTimestampSupabase(ts) { 
             if (!ts) return "—"; 
             if (typeof ts === 'string') return new Date(ts).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); 
@@ -667,7 +841,7 @@
         function formatarDataTexto(dv) { 
             if (!dv) return 'Não informada'; 
             if (typeof dv === 'string') {
-                if (dv.includes('T')) return new Date(dv).toLocaleDateString('pt-BR'); // ISO string
+                if (dv.includes('T')) return new Date(dv).toLocaleDateString('pt-BR');
                 if (dv.includes('-')) { const p = dv.split('-'); if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`; }
                 return dv;
             }
@@ -684,13 +858,237 @@
             return null; 
         }
 
+        // ===== UTILITÁRIOS DE VOLUMES FALTANTES =====
+        function parseVolumesString(str) {
+            if (!str) return [];
+            const vols = new Set();
+            String(str).split(/[,;]+/).forEach(part => {
+                part = part.trim(); if (!part) return;
+                const m = part.match(/^(\d+)\s*[-–aA]\s*(\d+)$/);
+                if (m) { let ini = parseInt(m[1]), fim = parseInt(m[2]); if (ini > fim) [ini, fim] = [fim, ini]; for (let i = ini; i <= fim; i++) vols.add(i); }
+                else { const n = parseInt(part); if (!isNaN(n) && n > 0) vols.add(n); }
+            });
+            return [...vols].sort((a, b) => a - b);
+        }
+
+        function compactarVolumes(arr) {
+            if (!arr || !arr.length) return '';
+            const s = [...arr].sort((a, b) => a - b); const partes = [];
+            let ini = s[0], ant = s[0];
+            for (let i = 1; i <= s.length; i++) {
+                const atual = s[i];
+                if (atual === ant + 1) { ant = atual; continue; }
+                partes.push(ini === ant ? `${ini}` : `${ini}-${ant}`);
+                ini = atual; ant = atual;
+            }
+            return partes.join(', ');
+        }
+
+        // ===== NORMALIZAÇÃO DE CABEÇALHOS DA IMPORTAÇÃO =====
+        // Remove acentos, espaços, underscores e coloca em minúsculas.
+        // Assim "numero_processo", "Numero Processo" e "numeroProcesso" viram a mesma chave.
+        function normKey(s) { return String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, ''); }
+
+        // Colunas EXTRAS que só existem na importação (ficam salvas em dadosImportacao no Supabase,
+        // não aparecem no histórico nem no cadastro manual).
+        const EXTRAS_MAP = [
+            ['ordem_importacao', 'ordemImportacao'],
+            ['quem_preencheu', 'quemPreencheu'],
+            ['ano_inicio', 'anoInicio'],
+            ['ano_fim', 'anoFim'],
+            ['tipologia_predominante', 'tipologiaPredominante'],
+            ['estado_fisico', 'estadoFisico'],
+            ['proposta_destinacao', 'propostaDestinacao'],
+            ['restricao_acesso', 'restricaoAcesso'],
+            ['observacoes', 'observacoes'],
+            ['sigla_unidade_origem', 'siglaUnidadeOrigem'],
+            ['lote_caixa', 'loteCaixa'],
+            ['SEI_processos', 'seiProcessos'],
+            ['Responsavel_transferencia', 'responsavelTransferencia'],
+            ['Area_tranferencia', 'areaTransferencia'],
+            ['Area_transferencia', 'areaTransferencia'],
+            ['mt_linear_qt_caixas', 'mtLinearQtCaixas'],
+            ['ano_destinacao_calculado', 'anoDestinacaoCalculado'],
+            ['conarq_codigo', 'conarqCodigo'],
+            ['conarq_descritor', 'conarqDescritor'],
+            ['conarq_destinacao_final', 'conarqDestinacaoFinal'],
+            ['created_at', 'createdAt']
+        ];
+
+        function gerarCheckboxesVolumes(faltantesExistentes = []) {
+            const qtd = parseInt(numVolumesInput.value) || 0;
+            volumesCheckContainer.innerHTML = '';
+            if (qtd < 1) { volumesCadastroBox.style.display = 'none'; return; }
+            volumesCadastroBox.style.display = 'block';
+            for (let i = 1; i <= qtd; i++) {
+                const item = document.createElement('label');
+                item.className = 'vol-check-item';
+                item.innerHTML = `<input type="checkbox" id="volCheck${i}"><span>Vol. ${i}</span>`;
+                volumesCheckContainer.appendChild(item);
+                item.querySelector('input').checked = !faltantesExistentes.includes(i);
+                item.querySelector('input').addEventListener('change', atualizarAvisoVolumes);
+            }
+            atualizarAvisoVolumes();
+        }
+
+        function coletarFaltantesForm() {
+            const qtd = parseInt(numVolumesInput.value) || 0; const faltantes = [];
+            for (let i = 1; i <= qtd; i++) { const cb = document.getElementById(`volCheck${i}`); if (cb && !cb.checked) faltantes.push(i); }
+            return faltantes;
+        }
+
+        function atualizarAvisoVolumes() {
+            const faltantes = coletarFaltantesForm();
+            if (!faltantes.length) { avisoVolumesCadastro.className = 'aviso-volumes aviso-ok'; avisoVolumesCadastro.textContent = '✅ Acervo completo: todos os volumes estão no arquivo.'; }
+            else { avisoVolumesCadastro.className = 'aviso-volumes aviso-falta'; avisoVolumesCadastro.textContent = `⚠️ Cadastro INCOMPLETO — Volume(s) faltante(s): ${compactarVolumes(faltantes)}`; }
+        }
+
+        function limparVolumesCadastro() { volumesCadastroBox.style.display = 'none'; volumesCheckContainer.innerHTML = ''; avisoVolumesCadastro.textContent = ''; avisoVolumesCadastro.className = 'aviso-volumes'; }
+
+        numVolumesInput.addEventListener('input', () => gerarCheckboxesVolumes());
+        filtroIncompletos.addEventListener('change', () => { currentPage = 1; aplicarFiltroBusca(); });
+
+        // ===== NAVEGAÇÃO ENTRE PÁGINAS =====
+        window.navegarPara = function(pagina) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const alvo = document.getElementById('page-' + pagina);
+            if (alvo) alvo.classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === pagina));
+            localStorage.setItem('ipen_pagina_atual', pagina);
+            if (pagina === 'dashboard') renderDashboard();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.irParaHistorico = function(tipo) {
+            if (tipo === 'faltantes') filtroIncompletos.checked = true; else filtroIncompletos.checked = false;
+            if (tipo === 'desarquivados') { trocarAba('desarquivados'); } else { trocarAba('arquivados'); }
+            navegarPara('historico');
+        };
+
+        window.irEditarDoDash = function(id) {
+            navegarPara('cadastro');
+            editarProcesso(id);
+        };
+
+        // ===== DASHBOARD (CARDS + GRÁFICOS + LISTA) =====
+        function renderDashboard() {
+            const totalProcessos = todosProcessos.length;
+            const totalVolumes = todosProcessos.reduce((s, p) => s + (parseInt(p.numVolumes) || 0), 0);
+            const listaFalt = todosProcessos.filter(p => parseVolumesString(p.volumesFaltantes).length > 0);
+            const totalFalt = listaFalt.length;
+            const totalComp = totalProcessos - totalFalt;
+            const volFalt = listaFalt.reduce((s, p) => s + parseVolumesString(p.volumesFaltantes).length, 0);
+            const volDesarq = todosDesarquivamentos.reduce((s, d) => s + (parseInt(d.qtdVolumes) || 0), 0);
+            const pct = totalProcessos > 0 ? Math.round((totalComp / totalProcessos) * 100) : 0;
+
+            document.getElementById('dashTotalProcessos').textContent = totalProcessos;
+            document.getElementById('dashTotalVolumes').textContent = `${totalVolumes} volume(s) no acervo`;
+            document.getElementById('dashCompletos').textContent = totalComp;
+            document.getElementById('dashPctCompleto').textContent = `${pct}% do total`;
+            document.getElementById('dashFaltantes').textContent = totalFalt;
+            document.getElementById('dashVolFaltantes').textContent = `${volFalt} volume(s) ausente(s)`;
+            document.getElementById('dashDesarquivados').textContent = todosDesarquivamentos.length;
+            document.getElementById('dashVolDesarq').textContent = `${volDesarq} volume(s) fora do arquivo`;
+
+            document.getElementById('dashAtualizado').textContent = `Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
+
+            const navB = document.getElementById('navBadgeFaltantes');
+            if (navB) { if (totalFalt > 0) { navB.style.display = 'inline-block'; navB.textContent = totalFalt; } else navB.style.display = 'none'; }
+
+            renderDashListaFaltantes(listaFalt);
+            if (document.getElementById('page-dashboard').classList.contains('active')) renderCharts();
+        }
+
+        function renderDashListaFaltantes(listaFalt) {
+            const tbody = document.getElementById('dashFaltantesBody');
+            tbody.innerHTML = '';
+            if (!listaFalt.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="dash-mini-td" style="text-align:center;padding:18px;color:#2e7d32;font-weight:bold;">🎉 Nenhum processo com volumes faltantes. Acervo 100% completo!</td></tr>';
+                return;
+            }
+            const ordenada = [...listaFalt].sort((a, b) => String(a.numeroProcesso).localeCompare(String(b.numeroProcesso)));
+            ordenada.slice(0, 10).forEach(p => {
+                const falt = compactarVolumes(parseVolumesString(p.volumesFaltantes));
+                const loc = [p.sala, p.rua, p.estante, p.prateleira].filter(v => v && String(v).trim()).join(' / ') || '—';
+                const tr = document.createElement('tr');
+                tr.className = 'linha-incompleta';
+                tr.innerHTML = `<td class="dash-mini-td" style="font-weight:bold;">${p.numeroProcesso || ''}</td><td class="dash-mini-td">${p.numVolumes || ''}</td><td class="dash-mini-td"><span class="badge-faltantes">Vol. ${falt}</span></td><td class="dash-mini-td">${loc}</td><td class="dash-mini-td"><button class="btn-ver-todos" onclick="irEditarDoDash('${p.id}')">✏️ Editar</button></td>`;
+                tbody.appendChild(tr);
+            });
+            if (ordenada.length > 10) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="5" class="dash-mini-td" style="text-align:center;padding:8px;color:#888;font-style:italic;">Exibindo 10 de ${ordenada.length} processos. Clique em "Ver todos no Histórico" para ver a lista completa.</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function renderCharts() {
+            if (typeof Chart === 'undefined') return;
+            if (chartAcervo) { chartAcervo.destroy(); chartAcervo = null; }
+            if (chartMovimento) { chartMovimento.destroy(); chartMovimento = null; }
+
+            const totalFalt = todosProcessos.filter(p => parseVolumesString(p.volumesFaltantes).length > 0).length;
+            const totalComp = todosProcessos.length - totalFalt;
+            const ctxA = document.getElementById('chartAcervo').getContext('2d');
+            chartAcervo = new Chart(ctxA, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Acervo Completo', 'Com Volumes Faltantes'],
+                    datasets: [{ data: [totalComp, totalFalt], backgroundColor: ['#2e7d32', '#e53935'], borderColor: '#fff', borderWidth: 2 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 12 } } },
+                        tooltip: { callbacks: { label: (ctx) => { const total = ctx.dataset.data.reduce((a, b) => a + b, 0) || 1; const pct = Math.round((ctx.parsed / total) * 100); return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`; } } }
+                    }
+                }
+            });
+
+            const meses = [];
+            const agora = new Date();
+            for (let i = 5; i >= 0; i--) { meses.push(new Date(agora.getFullYear(), agora.getMonth() - i, 1)); }
+            const labelsM = meses.map(d => d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', ''));
+            const chavesM = meses.map(d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+
+            let cadastros, desarq, devol;
+            if (todosLogs.length > 0) {
+                cadastros = chavesM.map(ch => todosLogs.filter(l => l.tipoAcao === 'CRIACAO' && String(l.timestamp || '').startsWith(ch)).reduce((s, l) => s + ((l.dadosDepois && l.dadosDepois.total) || 1), 0));
+                desarq = chavesM.map(ch => todosLogs.filter(l => l.tipoAcao === 'DESARQUIVAMENTO' && String(l.timestamp || '').startsWith(ch)).length);
+                devol = chavesM.map(ch => todosLogs.filter(l => l.tipoAcao === 'DEVOLUCAO_ARQUIVO' && String(l.timestamp || '').startsWith(ch)).length);
+            } else {
+                cadastros = chavesM.map(ch => todosProcessos.filter(p => String(p.criadoEm || '').startsWith(ch)).length);
+                desarq = chavesM.map(ch => todosDesarquivamentos.filter(d => String(d.dataSolicitacao || '').startsWith(ch)).length);
+                devol = chavesM.map(() => 0);
+            }
+
+            const ctxM = document.getElementById('chartMovimento').getContext('2d');
+            chartMovimento = new Chart(ctxM, {
+                type: 'bar',
+                data: {
+                    labels: labelsM,
+                    datasets: [
+                        { label: 'Cadastros / Entradas', data: cadastros, backgroundColor: '#0056b3', borderRadius: 4 },
+                        { label: 'Desarquivamentos', data: desarq, backgroundColor: '#17a2b8', borderRadius: 4 },
+                        { label: 'Devoluções ao Arquivo', data: devol, backgroundColor: '#28a745', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                }
+            });
+        }
+
         function ordenarProcessos() {
             if (!sortColumn || abaAtual !== 'arquivados') return;
             const config = {
                 'Nº do Processo / SEI': 'numeroProcesso', 'Volumes': 'numVolumes', 'Interessado': 'interessado',
-                'Assunto': 'assunto', 'Modalidade': 'modalidade', 'Sala': 'sala', 'Estante': 'estante',
+                'Assunto': 'assunto', 'Modalidade': 'modalidade', 'Sala': 'sala', 'Rua': 'rua', 'Estante': 'estante',
                 'Prateleira': 'prateleira', 'Departamento': 'departamento', 'Recebedor': 'recebedor',
-                'Data Entrega': 'dataEntrega', 'Editado por': 'ultimoEditor', 'Última Edição': 'ultimaEdicao'
+                'Data Entrega': 'dataEntrega', 'Editado por': 'ultimoEditor', 'Última Edição': 'ultimaEdicao',
+                'Situação dos Volumes': 'volumesFaltantes'
             };
             const campo = config[sortColumn];
             if (!campo) return;
@@ -705,6 +1103,9 @@
                     if (!b[campo]) valB = sortDirection === 'asc' ? Infinity : -Infinity;
                 } else if (['numVolumes', 'sala'].includes(campo)) {
                     valA = parseInt(valA) || 0; valB = parseInt(valB) || 0;
+                } else if (campo === 'volumesFaltantes') {
+                    valA = parseVolumesString(a.volumesFaltantes).length;
+                    valB = parseVolumesString(b.volumesFaltantes).length;
                 } else {
                     valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase();
                 }
@@ -716,35 +1117,36 @@
         }
 
         async function iniciarSistema() {
-            // Carregamento Inicial e Realtime do Supabase para 'processos_arquivados'
+            if (sistemaIniciado) return;
+            sistemaIniciado = true;
             const loadProcessos = async () => {
                 const { data, error } = await supabase.from('processos_arquivados').select('*');
                 if (error) { console.error("Erro crítico:", error); showMessage("Erro ao carregar processos.", "error"); return; }
                 todosProcessos = data || [];
                 aplicarFiltroBusca();
+                renderDashboard();
             };
             await loadProcessos();
 
-            // Carregamento Inicial e Realtime para 'desarquivamentos'
             const loadDesarquivamentos = async () => {
                 const { data, error } = await supabase.from('desarquivamentos').select('*');
                 if (error) { console.error("Erro:", error); return; }
                 todosDesarquivamentos = data || [];
                 if (abaAtual === 'desarquivados') aplicarFiltroBusca();
+                renderDashboard();
             };
             await loadDesarquivamentos();
 
-            // Carregamento Inicial e Realtime para 'logs_auditoria'
             const loadLogs = async () => {
                 const { data, error } = await supabase.from('logs_auditoria').select('*');
                 if (error) { console.warn("[Audit] Falha:", error.message); return; }
                 todosLogs = data || [];
                 atualizarAuditBadge();
                 if (modalAuditoria.style.display === 'flex') { renderAuditStats(); renderAuditTable(); }
+                renderDashboard();
             };
             await loadLogs();
 
-            // Configurando inscrições Realtime do Supabase
             supabase.channel('custom-all-channel')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'processos_arquivados' }, loadProcessos)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'desarquivamentos' }, loadDesarquivamentos)
@@ -763,84 +1165,100 @@
                     aplicarFiltroBusca();
                 });
             });
+
+            navegarPara(localStorage.getItem('ipen_pagina_atual') || 'dashboard');
         }
 
         function aplicarFiltroBusca() {
             const termo = searchInput.value.toLowerCase().trim();
+            const soIncompletos = filtroIncompletos.checked && abaAtual === 'arquivados';
             processosFiltrados = (abaAtual === 'arquivados' ? todosProcessos : todosDesarquivamentos).filter(p => {
-                const campos = abaAtual === 'arquivados' ? [p.numeroProcesso, p.interessado, p.assunto, p.departamento, p.recebedor] : [p.numeroProcesso, p.departamentoSolicitante, p.responsavel, p.docAutorizacao];
+                if (soIncompletos && parseVolumesString(p.volumesFaltantes).length === 0) return false;
+                const campos = abaAtual === 'arquivados' ? [p.numeroProcesso, p.interessado, p.assunto, p.departamento, p.recebedor, p.rua, p.volumesFaltantes] : [p.numeroProcesso, p.departamentoSolicitante, p.responsavel, p.docAutorizacao];
                 return campos.some(v => v && String(v).toLowerCase().includes(termo));
             });
             ordenarProcessos();
             currentPage = 1; renderTabela();
+            atualizarContadorIncompletos();
+        }
+
+        function atualizarContadorIncompletos() {
+            const total = todosProcessos.filter(p => parseVolumesString(p.volumesFaltantes).length > 0).length;
+            const el = document.getElementById('contadorIncompletos');
+            if (!el) return;
+            if (total > 0) { el.style.display = 'inline-block'; el.textContent = `⚠️ ${total} processo(s) com volumes faltantes`; }
+            else el.style.display = 'none';
         }
         searchInput.addEventListener('input', aplicarFiltroBusca);
-// ====== AÇÕES DOS BOTÕES DE EXPORTAR EXCEL E PDF ======
 
-// Exportar para Excel
-btnExcel.addEventListener('click', () => {
-    if (processosFiltrados.length === 0) {
-        showMessage("Nenhum processo na lista para exportar.", "error");
-        return;
-    }
-    
-    // Mapeia os dados para o formato amigável do Excel
-    const dadosParaExcel = processosFiltrados.map(p => ({
-        "Nº Processo / SEI": p.numeroProcesso || '',
-        "Volumes": p.numVolumes || '',
-        "Interessado": p.interessado || '',
-        "Assunto": p.assunto || '',
-        "Modalidade": p.modalidade || '',
-        "Sala": p.sala || '',
-        "Estante": p.estante || '',
-        "Prateleira": p.prateleira || '',
-        "Departamento": p.departamento || '',
-        "Recebedor": p.recebedor || '',
-        "Data Entrega": formatarDataTexto(p.dataEntrega),
-        "Editado por": p.ultimoEditor || '',
-        "Última Edição": formatarTimestampSupabase(p.ultimaEdicao)
-    }));
+        // ====== AÇÕES DOS BOTÕES DE EXPORTAR EXCEL E PDF ======
 
-    const ws = XLSX.utils.json_to_sheet(dadosParaExcel);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Processos Arquivados");
-    XLSX.writeFile(wb, "processos_arquivados.xlsx");
-    showMessage("Exportação para Excel concluída!", "success");
-});
+        // Exportar para Excel
+        btnExcel.addEventListener('click', () => {
+            if (processosFiltrados.length === 0) {
+                showMessage("Nenhum processo na lista para exportar.", "error");
+                return;
+            }
+            
+            const dadosParaExcel = processosFiltrados.map(p => ({
+                "Nº Processo / SEI": p.numeroProcesso || '',
+                "Volumes": p.numVolumes || '',
+                "Interessado": p.interessado || '',
+                "Assunto": p.assunto || '',
+                "Modalidade": p.modalidade || '',
+                "Sala": p.sala || '',
+                "Rua": p.rua || '',
+                "Estante": p.estante || '',
+                "Prateleira": p.prateleira || '',
+                "Departamento": p.departamento || '',
+                "Recebedor": p.recebedor || '',
+                "Volumes Faltantes": p.volumesFaltantes ? compactarVolumes(parseVolumesString(p.volumesFaltantes)) : '',
+                "Data Entrega": formatarDataTexto(p.dataEntrega),
+                "Editado por": p.ultimoEditor || '',
+                "Última Edição": formatarTimestampSupabase(p.ultimaEdicao)
+            }));
 
-// Exportar para PDF
-btnPDF.addEventListener('click', () => {
-    if (processosFiltrados.length === 0) {
-        showMessage("Nenhum processo na lista para exportar.", "error");
-        return;
-    }
+            const ws = XLSX.utils.json_to_sheet(dadosParaExcel);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Processos Arquivados");
+            XLSX.writeFile(wb, "processos_arquivados.xlsx");
+            showMessage("Exportação para Excel concluída!", "success");
+        });
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'mm', 'a4'); // 'l' = landscape (paisagem), melhor para tabelas largas
+        // Exportar para PDF
+        btnPDF.addEventListener('click', () => {
+            if (processosFiltrados.length === 0) {
+                showMessage("Nenhum processo na lista para exportar.", "error");
+                return;
+            }
 
-    // Usa o plugin autoTable para gerar a tabela no PDF
-    doc.autoTable({
-        head: [['Nº Processo', 'Vol', 'Interessado', 'Assunto', 'Sala', 'Est', 'Prat', 'Departamento', 'Recebedor', 'Data Entrega']],
-        body: processosFiltrados.map(p => [
-            p.numeroProcesso || '',
-            p.numVolumes || '',
-            p.interessado || '',
-            p.assunto || '',
-            p.sala || '',
-            p.estante || '',
-            p.prateleira || '',
-            p.departamento || '',
-            p.recebedor || '',
-            formatarDataTexto(p.dataEntrega)
-        ]),
-        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
-        headStyles: { fillColor: [0, 86, 179], textColor: 255, fontStyle: 'bold' }, // Cor primária do seu sistema
-        columnStyles: { 0: { cellWidth: 30 }, 2: { cellWidth: 40 }, 3: { cellWidth: 40 } }
-    });
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
 
-    doc.save("processos_arquivados.pdf");
-    showMessage("Exportação para PDF concluída!", "success");
-});
+            doc.autoTable({
+                head: [['Nº Processo', 'Vol', 'Interessado', 'Assunto', 'Sala', 'Rua', 'Est', 'Prat', 'Departamento', 'Recebedor', 'Data Entrega', 'Vol. Faltantes']],
+                body: processosFiltrados.map(p => [
+                    p.numeroProcesso || '',
+                    p.numVolumes || '',
+                    p.interessado || '',
+                    p.assunto || '',
+                    p.sala || '',
+                    p.rua || '',
+                    p.estante || '',
+                    p.prateleira || '',
+                    p.departamento || '',
+                    p.recebedor || '',
+                    formatarDataTexto(p.dataEntrega),
+                    p.volumesFaltantes ? compactarVolumes(parseVolumesString(p.volumesFaltantes)) : '—'
+                ]),
+                styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+                headStyles: { fillColor: [0, 86, 179], textColor: 255, fontStyle: 'bold' },
+                columnStyles: { 0: { cellWidth: 30 }, 2: { cellWidth: 40 }, 3: { cellWidth: 40 }, 11: { cellWidth: 25 } }
+            });
+
+            doc.save("processos_arquivados.pdf");
+            showMessage("Exportação para PDF concluída!", "success");
+        });
 
         function renderTabela() {
             const tbody = abaAtual === 'arquivados' ? tableBody : desarqTableBody; tbody.innerHTML = '';
@@ -848,8 +1266,18 @@ btnPDF.addEventListener('click', () => {
             const paginaAtual = processosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
             
             if (abaAtual === 'arquivados') {
-                if (!paginaAtual.length) { tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;padding:20px;">Nenhum processo arquivado encontrado.</td></tr>'; } else {
-                    paginaAtual.forEach(p => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${p.numeroProcesso || ''}</td><td>${p.numVolumes || ''}</td><td>${p.interessado || ''}</td><td>${p.assunto || ''}</td><td>${p.modalidade || ''}</td><td>${p.sala || ''}</td><td>${p.estante || ''}</td><td>${p.prateleira || ''}</td><td>${p.departamento || ''}</td><td>${p.recebedor || ''}</td><td>${formatarDataTexto(p.dataEntrega)}</td><td>${p.ultimoEditor || '—'}</td><td>${formatarTimestampSupabase(p.ultimaEdicao)}</td><td><div class="acoes-cell"><button class="btn-action btn-edit" onclick="editarProcesso('${p.id}')">✏️ Editar</button><button class="btn-action btn-unarchive" onclick="abrirModalDesarquivamento('${p.id}', '${p.numeroProcesso}')">📤 Desarquivar</button><button class="btn-action btn-danger" onclick="solicitarExclusaoProcesso('${p.id}')">🗑️ Excluir</button></div></td>`; tbody.appendChild(tr); });
+                if (!paginaAtual.length) { tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;padding:20px;">Nenhum processo arquivado encontrado.</td></tr>'; } else {
+                    paginaAtual.forEach(p => {
+                        const faltantesArr = parseVolumesString(p.volumesFaltantes);
+                        const temFalta = faltantesArr.length > 0;
+                        const tr = document.createElement('tr');
+                        if (temFalta) tr.classList.add('linha-incompleta');
+                        const celSituacao = temFalta
+                            ? `<span class="badge-faltantes" title="Volumes não localizados no acervo">⚠️ Faltam: Vol. ${compactarVolumes(faltantesArr)}</span>`
+                            : `<span class="badge-completo">✅ Completo</span>`;
+                        tr.innerHTML = `<td>${p.numeroProcesso || ''}</td><td>${p.numVolumes || ''}</td><td>${p.interessado || ''}</td><td>${p.assunto || ''}</td><td>${p.modalidade || ''}</td><td>${p.sala || ''}</td><td>${p.rua || ''}</td><td>${p.estante || ''}</td><td>${p.prateleira || ''}</td><td>${p.departamento || ''}</td><td>${p.recebedor || ''}</td><td>${formatarDataTexto(p.dataEntrega)}</td><td>${p.ultimoEditor || '—'}</td><td>${formatarTimestampSupabase(p.ultimaEdicao)}</td><td>${celSituacao}</td><td><div class="acoes-cell"><button class="btn-action btn-edit" onclick="editarProcesso('${p.id}')">✏️ Editar</button><button class="btn-action btn-unarchive" onclick="abrirModalDesarquivamento('${p.id}', '${p.numeroProcesso}')">📤 Desarquivar</button><button class="btn-action btn-danger" onclick="solicitarExclusaoProcesso('${p.id}')">🗑️ Excluir</button></div></td>`;
+                        tbody.appendChild(tr);
+                    });
                 }
             } else {
                 if (!paginaAtual.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;">Nenhum desarquivamento registrado.</td></tr>'; } else {
@@ -865,7 +1293,8 @@ btnPDF.addEventListener('click', () => {
 
         processForm.addEventListener('submit', async (e) => {
             e.preventDefault(); const id = document.getElementById('docId').value;
-            const dadosForm = { numeroProcesso: document.getElementById('numeroProcesso').value.trim().toUpperCase(), numVolumes: parseInt(document.getElementById('numVolumes').value) || 0, interessado: document.getElementById('interessado').value.trim().toUpperCase(), assunto: document.getElementById('assunto').value.trim().toUpperCase(), modalidade: document.getElementById('modalidade').value.trim().toUpperCase(), sala: document.getElementById('sala').value.trim(), estante: document.getElementById('estante').value.trim().toUpperCase(), prateleira: document.getElementById('prateleira').value.trim().toUpperCase(), departamento: document.getElementById('departamento').value.trim().toUpperCase(), recebedor: document.getElementById('recebedor').value.trim().toUpperCase(), dataEntrega: document.getElementById('dataEntrega').value || null };
+            const faltantesForm = coletarFaltantesForm();
+            const dadosForm = { numeroProcesso: document.getElementById('numeroProcesso').value.trim().toUpperCase(), numVolumes: parseInt(document.getElementById('numVolumes').value) || 0, interessado: document.getElementById('interessado').value.trim().toUpperCase(), assunto: document.getElementById('assunto').value.trim().toUpperCase(), modalidade: document.getElementById('modalidade').value.trim().toUpperCase(), sala: document.getElementById('sala').value.trim(), rua: document.getElementById('rua').value.trim().toUpperCase(), estante: document.getElementById('estante').value.trim().toUpperCase(), prateleira: document.getElementById('prateleira').value.trim().toUpperCase(), departamento: document.getElementById('departamento').value.trim().toUpperCase(), recebedor: document.getElementById('recebedor').value.trim().toUpperCase(), volumesFaltantes: faltantesForm.length ? faltantesForm.join(',') : null, dataEntrega: document.getElementById('dataEntrega').value || null };
             try {
                 if (id) {
                     const nomeEditor = document.getElementById('nomeEditor').value.trim(); if (!nomeEditor) { showMessage("Informe o nome de quem está editando.", "error"); return; }
@@ -882,127 +1311,153 @@ btnPDF.addEventListener('click', () => {
                     const { data: newDoc, error } = await supabase.from('processos_arquivados').insert([dadosForm]).select();
                     if (error) throw error;
                     
-                    registrarLog('CRIACAO', `Processo ${dadosForm.numeroProcesso} criado.`, 'processos_arquivados', newDoc[0].id, null, dadosForm); 
-                    showMessage("Processo cadastrado com sucesso!", "success"); 
+                    registrarLog('CRIACAO', `Processo ${dadosForm.numeroProcesso} criado.` + (faltantesForm.length ? ` ATENÇÃO: Volumes faltantes: ${compactarVolumes(faltantesForm)}.` : ''), 'processos_arquivados', newDoc[0].id, null, dadosForm); 
+                    showMessage("Processo cadastrado com sucesso!" + (faltantesForm.length ? ` ⚠️ Volumes faltantes: ${compactarVolumes(faltantesForm)}.` : ''), "success"); 
                     processForm.reset();
+                    limparVolumesCadastro();
                 }
             } catch (error) { console.error(error); showMessage("Erro ao salvar processo: " + error.message, "error"); }
         });
 
-        window.editarProcesso = function(id) { const p = todosProcessos.find(proc => proc.id === id); if (!p) return; document.getElementById('docId').value = p.id; ['numeroProcesso','numVolumes','interessado','assunto','modalidade','sala','estante','prateleira','departamento','recebedor','dataEntrega'].forEach(c => { document.getElementById(c).value = p[c] || ''; }); editorField.style.display = 'block'; formTitle.textContent = "Editando Processo"; submitBtn.textContent = "Salvar Alterações"; cancelBtn.style.display = 'inline-block'; window.scrollTo({ top: 0, behavior: 'smooth' }); };
-        function cancelarEdicao() { document.getElementById('docId').value = ''; processForm.reset(); editorField.style.display = 'none'; formTitle.textContent = "Novo Cadastro de Processo"; submitBtn.textContent = "Cadastrar Processo"; cancelBtn.style.display = 'none'; }
+        window.editarProcesso = function(id) { const p = todosProcessos.find(proc => proc.id === id); if (!p) return; document.getElementById('docId').value = p.id; ['numeroProcesso','numVolumes','interessado','assunto','modalidade','sala','rua','estante','prateleira','departamento','recebedor','dataEntrega'].forEach(c => { document.getElementById(c).value = p[c] || ''; }); gerarCheckboxesVolumes(parseVolumesString(p.volumesFaltantes)); editorField.style.display = 'block'; formTitle.textContent = "Editando Processo"; submitBtn.textContent = "Salvar Alterações"; cancelBtn.style.display = 'inline-block'; window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        function cancelarEdicao() { document.getElementById('docId').value = ''; processForm.reset(); editorField.style.display = 'none'; formTitle.textContent = "Novo Cadastro de Processo"; submitBtn.textContent = "Cadastrar Processo"; cancelBtn.style.display = 'none'; limparVolumesCadastro(); }
         cancelBtn.addEventListener('click', cancelarEdicao);
-// ====== AÇÕES DOS BOTÕES DE IMPORTAR E BAIXAR MODELO ======
 
-// 1. Baixar Modelo CSV
-btnModelo.addEventListener('click', () => {
-    // Cabeçalhos exatos que o sistema espera
-    const headers = ['numeroProcesso', 'numVolumes', 'interessado', 'assunto', 'modalidade', 'sala', 'estante', 'prateleira', 'departamento', 'recebedor', 'dataEntrega'];
-    // Linha de exemplo (opcional, mas ajuda o usuário)
-    const sampleRow = ['2023/00123', '2', 'João da Silva', 'Compra de equipamentos', 'Pregão', '101', 'A', '3', 'Biblioteca', 'Maria Souza', '2023-10-25'];
-    
-    // Monta o conteúdo CSV
-    const csvContent = [
-        headers.join(','),
-        sampleRow.map(field => `"${field}"`).join(',') // Coloca aspas para evitar problemas com vírgulas
-    ].join('\n');
+        // ====== AÇÕES DOS BOTÕES DE IMPORTAR E BAIXAR MODELO ======
 
-    // Cria o arquivo e força o download
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'modelo_importacao_processos.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-});
-
-// 2. Abrir seletor de arquivos ao clicar em "Importar em Massa"
-btnUpload.addEventListener('click', () => fileInput.click());
-
-// 3. Ler e processar o arquivo selecionado
-fileInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = async (event) => {
-        try {
-            const data = new Uint8Array(event.target.result);
-            // Usa a biblioteca XLSX para ler o arquivo (funciona para CSV e Excel)
-            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
+        // 1. Baixar Modelo CSV (formato dos Diagnósticos de Arquivo)
+        btnModelo.addEventListener('click', () => {
+            const headers = ['numero_processo','volume','ano_inicio','ano_fim','tipologia_predominante','estado_fisico','proposta_destinacao','restricao_acesso','observacoes','Sala_processo','Rua_processo','Prateleira_processo','sigla_unidade_origem','lote_caixa','SEI_processos','Responsavel_transferencia','Area_tranferencia','mt_linear_qt_caixas','ano_destinacao_calculado','conarq_codigo','conarq_descritor','conarq_destinacao_final'];
+            const sampleRow = ['0134250026/2016-10','1','2010','2016','031.12 - Compra de material de consumo','Bom (sujidade leve)','Fase Intermediária','Sigiloso','','Sala 14','Amazonas','P-04','GERENCIA DE IMPORTACAO E EXPORTACAO','Caixa 3','não','ADEMIR TIMOTEO','SEGFC - FINANCEIRO','','2021','031.12','Compra - material de consumo',''];
             
-            // Converte a planilha em um array de objetos JSON
-            const json = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+            const csvContent = [
+                headers.join(','),
+                sampleRow.map(field => `"${field}"`).join(',')
+            ].join('\n');
 
-            if (json.length === 0) {
-                showMessage("O arquivo está vazio ou não possui dados válidos.", "error");
-                return;
-            }
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'modelo_importacao_diagnosticos.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
 
-            // Mapeia e limpa os dados lidos para o padrão do Supabase
-            const processosParaInserir = json.map(row => {
-                // Tratamento especial para a data (converte para ISO string se for data do Excel)
-                let dataEntrega = row.dataEntrega || row['Data Entrega'] || '';
-                if (dataEntrega instanceof Date) {
-                    dataEntrega = dataEntrega.toISOString().split('T')[0];
-                } else if (typeof dataEntrega === 'string' && dataEntrega.includes('/')) {
-                    // Tenta converter DD/MM/YYYY para YYYY-MM-DD
-                    const p = dataEntrega.split('/');
-                    if (p.length === 3) dataEntrega = `${p[2]}-${p[1]}-${p[0]}`;
+        // 2. Abrir seletor de arquivos ao clicar em "Importar em Massa"
+        btnUpload.addEventListener('click', () => fileInput.click());
+
+        // 3. Ler e processar o arquivo selecionado
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = async (event) => {
+                try {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    const json = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+                    if (json.length === 0) {
+                        showMessage("O arquivo está vazio ou não possui dados válidos.", "error");
+                        return;
+                    }
+
+                    const processosParaInserir = json.map(row => {
+                        // Normaliza os cabeçalhos da linha (funciona com "numero_processo",
+                        // "numeroProcesso", "Nº do Processo", com ou sem acentos/espaços)
+                        const rowN = {};
+                        Object.keys(row).forEach(k => { rowN[normKey(k)] = row[k]; });
+                        const pega = (...aliases) => { for (const a of aliases) { const v = rowN[normKey(a)]; if (v !== undefined && v !== null && String(v).trim() !== '') return v; } return ''; };
+
+                        // ---- Data de entrega (formato antigo; o arquivo novo não possui) ----
+                        let dataEntrega = pega('dataEntrega', 'Data Entrega');
+                        if (dataEntrega instanceof Date) {
+                            dataEntrega = dataEntrega.toISOString().split('T')[0];
+                        } else if (typeof dataEntrega === 'string' && dataEntrega.includes('/')) {
+                            const p = dataEntrega.split('/');
+                            if (p.length === 3) dataEntrega = `${p[2]}-${p[1]}-${p[0]}`;
+                        }
+
+                        // ---- Sala: remove o prefixo "Sala" (ex: "Sala 14" -> "14") ----
+                        const salaImp = String(pega('sala', 'Sala_processo')).replace(/sala/gi, '').trim();
+
+                        // ---- Volumes faltantes (aceita "2,4" ou "2-4", ou lista de presentes) ----
+                        const totalVolImp = parseInt(pega('numVolumes', 'volume', 'volumes', 'qtdvolumes')) || 0;
+                        const faltantesImp = pega('volumesFaltantes', 'Volumes Faltantes');
+                        const presentesImp = pega('volumesPresentes', 'Volumes Presentes');
+                        let volumesFaltantesFinal = null;
+                        if (String(faltantesImp).trim()) {
+                            const arr = parseVolumesString(faltantesImp);
+                            volumesFaltantesFinal = arr.length ? arr.join(',') : null;
+                        } else if (String(presentesImp).trim() && totalVolImp > 0) {
+                            const presentes = parseVolumesString(presentesImp);
+                            const falt = [];
+                            for (let i = 1; i <= totalVolImp; i++) if (!presentes.includes(i)) falt.push(i);
+                            volumesFaltantesFinal = falt.length ? falt.join(',') : null;
+                        }
+
+                        // ---- Informações ADICIONAIS (somente importação) ----
+                        const extras = {};
+                        EXTRAS_MAP.forEach(([alias, nome]) => {
+                            const v = pega(alias);
+                            if (v !== '') extras[nome] = (typeof v === 'string') ? v.trim() : v;
+                        });
+
+                        return {
+                            numeroProcesso: String(pega('numeroProcesso', 'numero_processo', 'Nº do Processo', 'numeroprocessosei')).toUpperCase().trim(),
+                            numVolumes: totalVolImp || 1,
+                            interessado: String(pega('interessado')).toUpperCase().trim(),
+                            assunto: String(pega('assunto', 'tipologia_predominante')).toUpperCase().trim(),
+                            modalidade: String(pega('modalidade')).toUpperCase().trim(),
+                            sala: salaImp,
+                            rua: String(pega('rua', 'Rua_processo')).toUpperCase().trim(),
+                            estante: String(pega('estante')).toUpperCase().trim(),
+                            prateleira: String(pega('prateleira', 'Prateleira_processo')).toUpperCase().trim(),
+                            departamento: String(pega('departamento', 'Area_tranferencia', 'Area_transferencia')).toUpperCase().trim(),
+recebedor: String(pega('recebedor')).toUpperCase().trim(),
+                            volumesFaltantes: volumesFaltantesFinal,
+                            dadosImportacao: Object.keys(extras).length ? extras : null,
+                            dataEntrega: dataEntrega || null,
+                            criadoEm: new Date().toISOString()
+                        };
+                    }).filter(p => p.numeroProcesso);
+
+                    if (processosParaInserir.length === 0) {
+                        showMessage("Nenhum processo válido encontrado no arquivo. Verifique se a coluna 'numero_processo' (ou 'numeroProcesso') existe.", "error");
+                        return;
+                    }
+
+                    showMessage(`Importando ${processosParaInserir.length} processos...`, "success");
+
+                    const { data: insertedData, error } = await supabase.from('processos_arquivados').insert(processosParaInserir).select();
+
+                    if (error) throw error;
+
+                    if (insertedData && insertedData.length > 0) {
+                        registrarLog('CRIACAO', `Importação em massa de ${insertedData.length} processos.`, 'processos_arquivados', null, null, { total: insertedData.length });
+                    }
+
+                    const comFaltantes = insertedData.filter(p => p.volumesFaltantes).length;
+                    showMessage(`${insertedData.length} processos importados com sucesso!` + (comFaltantes > 0 ? ` ⚠️ ${comFaltantes} com volumes faltantes.` : ''), "success");
+                    
+                } catch (error) {
+                    console.error("Erro ao importar arquivo:", error);
+                    showMessage("Erro ao ler/importar o arquivo: " + error.message, "error");
+                } finally {
+                    fileInput.value = '';
                 }
+            };
 
-                return {
-                    numeroProcesso: String(row.numeroProcesso || row['Nº do Processo'] || '').toUpperCase().trim(),
-                    numVolumes: parseInt(row.numVolumes || row['Volumes']) || 1,
-                    interessado: String(row.interessado || row['Interessado'] || '').toUpperCase().trim(),
-                    assunto: String(row.assunto || row['Assunto'] || '').toUpperCase().trim(),
-                    modalidade: String(row.modalidade || row['Modalidade'] || '').toUpperCase().trim(),
-                    sala: String(row.sala || row['Sala'] || '').trim(),
-                    estante: String(row.estante || row['Estante'] || '').toUpperCase().trim(),
-                    prateleira: String(row.prateleira || row['Prateleira'] || '').toUpperCase().trim(),
-                    departamento: String(row.departamento || row['Departamento'] || '').toUpperCase().trim(),
-                    recebedor: String(row.recebedor || row['Recebedor'] || '').toUpperCase().trim(),
-                    dataEntrega: dataEntrega || null,
-                    criadoEm: new Date().toISOString()
-                };
-            }).filter(p => p.numeroProcesso); // Ignora linhas totalmente vazias
-
-            if (processosParaInserir.length === 0) {
-                showMessage("Nenhum processo válido encontrado no arquivo. Verifique se a coluna 'numeroProcesso' existe.", "error");
-                return;
-            }
-
-            showMessage(`Importando ${processosParaInserir.length} processos...`, "success");
-
-            // Insere todos de uma vez no Supabase
-            const { data: insertedData, error } = await supabase.from('processos_arquivados').insert(processosParaInserir).select();
-
-            if (error) throw error;
-
-            // Registra log da importação em massa
-            if (insertedData && insertedData.length > 0) {
-                registrarLog('CRIACAO', `Importação em massa de ${insertedData.length} processos.`, 'processos_arquivados', null, null, { total: insertedData.length });
-            }
-
-            showMessage(`${insertedData.length} processos importados com sucesso!`, "success");
-            
-        } catch (error) {
-            console.error("Erro ao importar arquivo:", error);
-            showMessage("Erro ao ler/importar o arquivo: " + error.message, "error");
-        } finally {
-            // Limpa o input para permitir importar o mesmo arquivo novamente se necessário
-            fileInput.value = '';
-        }
-    };
-
-    reader.readAsArrayBuffer(file);
-});
+            reader.readAsArrayBuffer(file);
+        });
 
         // MODAL DE EXCLUSÃO
         window.solicitarExclusaoProcesso = function(id) { 
@@ -1127,21 +1582,21 @@ fileInput.addEventListener('change', async (e) => {
             doc.text(`Documento de Autorização: ${dados.docAutorizacao || ''}`, margin, y); y += 6; 
             doc.text(`Nº SEI do Termo: ${dados.seiTermo || ''}`, margin, y); y += 12;
 
-            // Seção 2 - Quantificação de Volumes e Páginas (Formatado em 3 colunas)
+            // Seção 2 - Quantificação de Volumes e Páginas (3 colunas)
             doc.setFont(undefined, 'bold'); doc.text("2. QUANTIFICAÇÃO DE VOLUMES E PÁGINAS", margin, y); y += 8; 
             doc.setFont(undefined, 'normal'); 
             doc.text(`Total de Volumes Retirados: ${dados.qtdVolumes || 0}`, margin, y); y += 6;
             
             let totalPaginas = 0; 
             if (dados.volumesDetalhes && dados.volumesDetalhes.length > 0) { 
-                const colWidth = 55; // Largura das colunas
+                const colWidth = 55;
                 const startX = margin + 5;
                 const startY = y;
                 let totalRows = 0;
 
                 dados.volumesDetalhes.forEach((v, index) => { 
-                    const col = index % 3; // Define a coluna (0, 1 ou 2)
-                    const row = Math.floor(index / 3); // Define a linha
+                    const col = index % 3;
+                    const row = Math.floor(index / 3);
                     totalRows = row + 1;
 
                     const posX = startX + (col * colWidth);
@@ -1169,13 +1624,12 @@ fileInput.addEventListener('change', async (e) => {
             doc.setFontSize(9); doc.setFont(undefined, 'italic'); 
             doc.text("(Este documento será assinado eletronicamente via Sistema Eletrônico de Informações - SEI)", margin, y); y += 12;
 
-            // Seção 4 - ASSINATURAS (Apenas 'ASSINATURAS' com nomes e setores alinhados)
+            // Seção 4 - ASSINATURAS
             doc.setFont(undefined, 'bold'); doc.setFontSize(11); 
             doc.text("4. ASSINATURAS", margin, y); y += 8;
             
             doc.setFontSize(10);
             
-            // Coluna 1: CIPRO (Entregue por)
             doc.setFont(undefined, 'bold'); 
             doc.text("Entregue por:", margin, y); 
             doc.setFont(undefined, 'normal'); 
@@ -1183,7 +1637,6 @@ fileInput.addEventListener('change', async (e) => {
             doc.setFontSize(8); doc.setFont(undefined, 'italic');
             doc.text("CIPRO / IPEN", margin, y + 9);
 
-            // Coluna 2: Solicitante / Responsável (Recebido por)
             const col2X = margin + 95;
             doc.setFontSize(10); doc.setFont(undefined, 'bold'); 
             doc.text("Recebido por:", col2X, y); 

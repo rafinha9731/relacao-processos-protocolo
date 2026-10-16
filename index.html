@@ -371,7 +371,7 @@
         .login-box button { width: 100%; }
         .login-error { color: var(--danger-color); font-size: 14px; margin-top: 10px; display: none; }
 
-        .acoes-cell { display: flex; flex-direction: column; gap: 4px; min-width: clamp(90px, 10vw, 130px); }
+        .acoes-cell { display: flex; flex-direction: column; gap: 4px; min-width: clamp(120px, 12vw, 160px); }
 
         .table-container::-webkit-scrollbar { height: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
@@ -413,6 +413,15 @@
         .filtro-incompletos { display: flex; align-items: center; gap: 5px; font-weight: bold; font-size: clamp(11px, 1vw, 14px); cursor: pointer; white-space: nowrap; }
         .filtro-incompletos input { width: auto; transform: scale(1.2); accent-color: #e53935; cursor: pointer; }
         .contador-badge { font-size: clamp(10px, 0.9vw, 13px); background: #e53935; color: #fff; border-radius: 10px; padding: 2px 10px; font-weight: bold; display: none; vertical-align: middle; }
+
+        /* ===== MODAL LOCALIZAÇÃO POR VOLUME ===== */
+        .modal-volumes { max-width: min(720px, 94vw); }
+        .btn-volumes { background-color: #00838f; color: #fff; }
+        .btn-volumes:hover { background-color: #006064; }
+        .vol-loc-badge-ok { display: inline-block; background-color: #2e7d32; color: #fff; padding: 2px 10px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
+        .vol-loc-badge-falta { display: inline-block; background-color: #e53935; color: #fff; padding: 2px 10px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
+        #tabelaLocalizacaoVolumes tr.linha-vol-faltante td { background-color: #fff8e1 !important; color: #b71c1c; }
+        #tabelaLocalizacaoVolumes tr.linha-vol-faltante td:first-child { font-weight: bold; }
     </style>
 </head>
 <body>
@@ -670,6 +679,23 @@
         </div>
     </div>
 
+    <!-- MODAL LOCALIZAÇÃO POR VOLUME -->
+    <div id="modalLocalizacaoVolumes" class="modal-overlay">
+        <div class="modal-content modal-volumes">
+            <button class="modal-close" onclick="fecharModalVolumes()">&times;</button>
+            <h2>📍 Localização por Volume</h2>
+            <p style="margin-bottom: 12px;">Processo: <strong id="volLocNumeroProcesso"></strong></p>
+            <div id="volLocResumo" style="margin-bottom: 14px;"></div>
+            <div class="table-container" style="max-height: 420px; overflow-y: auto;">
+                <table id="tabelaLocalizacaoVolumes">
+                    <thead><tr><th>Volume</th><th>Situação</th><th>Sala</th><th>Rua</th><th>Estante</th><th>Prateleira</th></tr></thead>
+                    <tbody id="volLocBody"></tbody>
+                </table>
+            </div>
+            <p style="margin-top: 10px; font-size: clamp(10px, 0.85vw, 12px); color: #888; font-style: italic;">Cada volume pode estar armazenado em uma localização diferente. Volumes marcados como FALTANDO não constam no acervo.</p>
+        </div>
+    </div>
+
     <script type="module">
         // INICIALIZAÇÃO DO SUPABASE
         const SUPABASE_URL = 'https://tvedxkxzwejjfmcufnpw.supabase.co';
@@ -688,7 +714,7 @@
         let todosProcessos = [], todosDesarquivamentos = [], todosLogs = [], processosFiltrados = [], logsFiltrados = [];
         let currentPage = 1, auditCurrentPage = 1, itemsPerPage = 15, auditItemsPerPage = 20, abaAtual = 'arquivados';
         let usuarioAtual = null, ipUsuario = 'Não detectado', idProcessoParaExcluir = null;
-        let sortColumn = null; let sortDirection = 'asc';
+	let sortColumn = null; let sortDirection = 'asc';
         let sistemaIniciado = false;
         let chartAcervo = null, chartMovimento = null;
 
@@ -885,12 +911,8 @@
         }
 
         // ===== NORMALIZAÇÃO DE CABEÇALHOS DA IMPORTAÇÃO =====
-        // Remove acentos, espaços, underscores e coloca em minúsculas.
-        // Assim "numero_processo", "Numero Processo" e "numeroProcesso" viram a mesma chave.
         function normKey(s) { return String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, ''); }
 
-        // Colunas EXTRAS que só existem na importação (ficam salvas em dadosImportacao no Supabase,
-        // não aparecem no histórico nem no cadastro manual).
         const EXTRAS_MAP = [
             ['ordem_importacao', 'ordemImportacao'],
             ['quem_preencheu', 'quemPreencheu'],
@@ -1191,9 +1213,7 @@
         }
         searchInput.addEventListener('input', aplicarFiltroBusca);
 
-        // ====== AÇÕES DOS BOTÕES DE EXPORTAR EXCEL E PDF ======
-
-        // Exportar para Excel
+        // ====== EXPORTAR EXCEL ======
         btnExcel.addEventListener('click', () => {
             if (processosFiltrados.length === 0) {
                 showMessage("Nenhum processo na lista para exportar.", "error");
@@ -1225,7 +1245,7 @@
             showMessage("Exportação para Excel concluída!", "success");
         });
 
-        // Exportar para PDF
+        // ====== EXPORTAR PDF ======
         btnPDF.addEventListener('click', () => {
             if (processosFiltrados.length === 0) {
                 showMessage("Nenhum processo na lista para exportar.", "error");
@@ -1275,7 +1295,10 @@
                         const celSituacao = temFalta
                             ? `<span class="badge-faltantes" title="Volumes não localizados no acervo">⚠️ Faltam: Vol. ${compactarVolumes(faltantesArr)}</span>`
                             : `<span class="badge-completo">✅ Completo</span>`;
-                        tr.innerHTML = `<td>${p.numeroProcesso || ''}</td><td>${p.numVolumes || ''}</td><td>${p.interessado || ''}</td><td>${p.assunto || ''}</td><td>${p.modalidade || ''}</td><td>${p.sala || ''}</td><td>${p.rua || ''}</td><td>${p.estante || ''}</td><td>${p.prateleira || ''}</td><td>${p.departamento || ''}</td><td>${p.recebedor || ''}</td><td>${formatarDataTexto(p.dataEntrega)}</td><td>${p.ultimoEditor || '—'}</td><td>${formatarTimestampSupabase(p.ultimaEdicao)}</td><td>${celSituacao}</td><td><div class="acoes-cell"><button class="btn-action btn-edit" onclick="editarProcesso('${p.id}')">✏️ Editar</button><button class="btn-action btn-unarchive" onclick="abrirModalDesarquivamento('${p.id}', '${p.numeroProcesso}')">📤 Desarquivar</button><button class="btn-action btn-danger" onclick="solicitarExclusaoProcesso('${p.id}')">🗑️ Excluir</button></div></td>`;
+                        // Botão de localização por volume (exibido quando há detalhe salvo na importação)
+                        const temLocVol = (p.dadosImportacao && Array.isArray(p.dadosImportacao.localizacaoPorVolume) && p.dadosImportacao.localizacaoPorVolume.length > 0);
+                        const btnLocVol = temLocVol ? `<button class="btn-action btn-volumes" onclick="verLocalizacaoVolumes('${p.id}')">📍 Local. por Volume</button>` : '';
+                        tr.innerHTML = `<td>${p.numeroProcesso || ''}</td><td>${p.numVolumes || ''}</td><td>${p.interessado || ''}</td><td>${p.assunto || ''}</td><td>${p.modalidade || ''}</td><td>${p.sala || ''}</td><td>${p.rua || ''}</td><td>${p.estante || ''}</td><td>${p.prateleira || ''}</td><td>${p.departamento || ''}</td><td>${p.recebedor || ''}</td><td>${formatarDataTexto(p.dataEntrega)}</td><td>${p.ultimoEditor || '—'}</td><td>${formatarTimestampSupabase(p.ultimaEdicao)}</td><td>${celSituacao}</td><td><div class="acoes-cell">${btnLocVol}<button class="btn-action btn-edit" onclick="editarProcesso('${p.id}')">✏️ Editar</button><button class="btn-action btn-unarchive" onclick="abrirModalDesarquivamento('${p.id}', '${p.numeroProcesso}')">📤 Desarquivar</button><button class="btn-action btn-danger" onclick="solicitarExclusaoProcesso('${p.id}')">🗑️ Excluir</button></div></td>`;
                         tbody.appendChild(tr);
                     });
                 }
@@ -1323,16 +1346,20 @@
         function cancelarEdicao() { document.getElementById('docId').value = ''; processForm.reset(); editorField.style.display = 'none'; formTitle.textContent = "Novo Cadastro de Processo"; submitBtn.textContent = "Cadastrar Processo"; cancelBtn.style.display = 'none'; limparVolumesCadastro(); }
         cancelBtn.addEventListener('click', cancelarEdicao);
 
-        // ====== AÇÕES DOS BOTÕES DE IMPORTAR E BAIXAR MODELO ======
-
-        // 1. Baixar Modelo CSV (formato dos Diagnósticos de Arquivo)
+        // ====== BAIXAR MODELO CSV (1 linha = 1 volume) ======
         btnModelo.addEventListener('click', () => {
             const headers = ['numero_processo','volume','ano_inicio','ano_fim','tipologia_predominante','estado_fisico','proposta_destinacao','restricao_acesso','observacoes','Sala_processo','Rua_processo','Prateleira_processo','sigla_unidade_origem','lote_caixa','SEI_processos','Responsavel_transferencia','Area_tranferencia','mt_linear_qt_caixas','ano_destinacao_calculado','conarq_codigo','conarq_descritor','conarq_destinacao_final'];
-            const sampleRow = ['0134250026/2016-10','1','2010','2016','031.12 - Compra de material de consumo','Bom (sujidade leve)','Fase Intermediária','Sigiloso','','Sala 14','Amazonas','P-04','GERENCIA DE IMPORTACAO E EXPORTACAO','Caixa 3','não','ADEMIR TIMOTEO','SEGFC - FINANCEIRO','','2021','031.12','Compra - material de consumo',''];
-            
+            // EXEMPLO: 1 linha = 1 volume. O processo abaixo tem vols 1, 2 e 4 (o 3 será detectado como FALTANTE).
+            // O vol. 4 está em outra prateleira — o sistema aceita localização diferente por volume.
+            const linhasExemplo = [
+                ['0134250026/2016-10','1','2010','2016','031.12 - Compra de material de consumo','Bom (sujidade leve)','Fase Intermediária','Sigiloso','','Sala 14','Amazonas','P-04','GERENCIA DE IMPORTACAO E EXPORTACAO','Caixa 3','não','ADEMIR TIMOTEO','SEGFC - FINANCEIRO','','2021','031.12','Compra - material de consumo',''],
+                ['0134250026/2016-10','2','2010','2016','031.12 - Compra de material de consumo','Bom (sujidade leve)','Fase Intermediária','Sigiloso','','Sala 14','Amazonas','P-04','GERENCIA DE IMPORTACAO E EXPORTACAO','Caixa 3','não','ADEMIR TIMOTEO','SEGFC - FINANCEIRO','','2021','031.12','Compra - material de consumo',''],
+                ['0134250026/2016-10','4','2010','2016','031.12 - Compra de material de consumo','Bom (sujidade leve)','Fase Intermediária','Sigiloso','','Sala 15','Amazonas','P-01','GERENCIA DE IMPORTACAO E EXPORTACAO','Caixa 7','não','ADEMIR TIMOTEO','SEGFC - FINANCEIRO','','2021','031.12','Compra - material de consumo','']
+            ];
+
             const csvContent = [
                 headers.join(','),
-                sampleRow.map(field => `"${field}"`).join(',')
+                ...linhasExemplo.map(linha => linha.map(field => `"${field}"`).join(','))
             ].join('\n');
 
             const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1346,10 +1373,13 @@
             document.body.removeChild(link);
         });
 
-        // 2. Abrir seletor de arquivos ao clicar em "Importar em Massa"
+        // ====== IMPORTAR EM MASSA ======
         btnUpload.addEventListener('click', () => fileInput.click());
 
-        // 3. Ler e processar o arquivo selecionado
+        // NOVA LÓGICA: cada linha = 1 volume individual. Linhas do mesmo processo
+        // são AGRUPADAS em 1 único registro. Total de volumes = MAIOR nº encontrado.
+        // Volumes "pulados" são detectados automaticamente como FALTANTES.
+        // Se o processo já existir no acervo, o registro é ATUALIZADO (mesclagem).
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -1370,15 +1400,64 @@
                         return;
                     }
 
-                    const processosParaInserir = json.map(row => {
-                        // Normaliza os cabeçalhos da linha (funciona com "numero_processo",
-                        // "numeroProcesso", "Nº do Processo", com ou sem acentos/espaços)
+                    // ===== PASSO 1: Normalizar linhas e AGRUPAR por nº do processo =====
+                    const grupos = new Map();
+                    let linhasSemProcesso = 0;
+
+                    json.forEach(row => {
                         const rowN = {};
                         Object.keys(row).forEach(k => { rowN[normKey(k)] = row[k]; });
                         const pega = (...aliases) => { for (const a of aliases) { const v = rowN[normKey(a)]; if (v !== undefined && v !== null && String(v).trim() !== '') return v; } return ''; };
 
-                        // ---- Data de entrega (formato antigo; o arquivo novo não possui) ----
-                        let dataEntrega = pega('dataEntrega', 'Data Entrega');
+                        const numProc = String(pega('numeroProcesso', 'numero_processo', 'Nº do Processo', 'numeroprocessosei')).toUpperCase().trim();
+                        if (!numProc) { linhasSemProcesso++; return; }
+
+                        if (!grupos.has(numProc)) grupos.set(numProc, { numProc, linhas: [] });
+                        grupos.get(numProc).linhas.push(pega);
+                    });
+
+                    if (grupos.size === 0) {
+                        showMessage("Nenhum processo válido encontrado no arquivo. Verifique se a coluna 'numero_processo' (ou 'numeroProcesso') existe.", "error");
+                        return;
+                    }
+
+                    const avisos = [];
+                    if (linhasSemProcesso > 0) avisos.push(`${linhasSemProcesso} linha(s) sem nº de processo (ignorada(s)).`);
+
+                    // ===== PASSO 2: Consolidar cada grupo em 1 único registro =====
+                    const processosConsolidados = [...grupos.values()].map(g => {
+                        const mapaVolumes = new Map();
+                        let duplicatas = 0, semVolume = 0;
+
+                        g.linhas.forEach(pega => {
+                            const v = parseInt(pega('volume', 'numVolumes', 'volumes', 'qtdvolumes'));
+                            if (isNaN(v) || v <= 0) { semVolume++; return; }
+                            if (mapaVolumes.has(v)) { duplicatas++; return; }
+                            mapaVolumes.set(v, {
+                                volume: v,
+                                sala: String(pega('sala', 'Sala_processo')).replace(/sala/gi, '').trim().toUpperCase(),
+                                rua: String(pega('rua', 'Rua_processo')).toUpperCase().trim(),
+                                estante: String(pega('estante')).toUpperCase().trim(),
+                                prateleira: String(pega('prateleira', 'Prateleira_processo')).toUpperCase().trim()
+                            });
+                        });
+
+                        if (duplicatas > 0) avisos.push(`${g.numProc}: ${duplicatas} linha(s) com volume repetido (mantida a 1ª ocorrência).`);
+                        if (semVolume > 0) avisos.push(`${g.numProc}: ${semVolume} linha(s) sem nº de volume válido.`);
+
+                        const volumesPresentes = [...mapaVolumes.keys()].sort((a, b) => a - b);
+                        let totalVol = 1; const faltantes = [];
+                        if (volumesPresentes.length) {
+                            totalVol = Math.max(...volumesPresentes); // TOTAL = MAIOR volume encontrado
+                            for (let i = 1; i <= totalVol; i++) if (!volumesPresentes.includes(i)) faltantes.push(i);
+                        } else {
+                            avisos.push(`${g.numProc}: nenhuma linha com nº de volume válido — registrado como 1 volume (completo).`);
+                        }
+
+                        // Campos GERAIS: usa a 1ª linha que contiver o valor
+                        const pegaGrupo = (...aliases) => { for (const pega of g.linhas) { const v = pega(...aliases); if (v !== '') return v; } return ''; };
+
+                        let dataEntrega = pegaGrupo('dataEntrega', 'Data Entrega');
                         if (dataEntrega instanceof Date) {
                             dataEntrega = dataEntrega.toISOString().split('T')[0];
                         } else if (typeof dataEntrega === 'string' && dataEntrega.includes('/')) {
@@ -1386,68 +1465,129 @@
                             if (p.length === 3) dataEntrega = `${p[2]}-${p[1]}-${p[0]}`;
                         }
 
-                        // ---- Sala: remove o prefixo "Sala" (ex: "Sala 14" -> "14") ----
-                        const salaImp = String(pega('sala', 'Sala_processo')).replace(/sala/gi, '').trim();
+                        // Localização: junta valores DISTINTOS (pode variar entre volumes)
+                        const volsArr = [...mapaVolumes.values()];
+                        const salasU = [...new Set(volsArr.map(v => v.sala).filter(Boolean))];
+                        const ruasU = [...new Set(volsArr.map(v => v.rua).filter(Boolean))];
+                        const estantesU = [...new Set(volsArr.map(v => v.estante).filter(Boolean))];
+                        const prateleirasU = [...new Set(volsArr.map(v => v.prateleira).filter(Boolean))];
+                        const locDivergente = (salasU.length > 1 || ruasU.length > 1 || estantesU.length > 1 || prateleirasU.length > 1);
 
-                        // ---- Volumes faltantes (aceita "2,4" ou "2-4", ou lista de presentes) ----
-                        const totalVolImp = parseInt(pega('numVolumes', 'volume', 'volumes', 'qtdvolumes')) || 0;
-                        const faltantesImp = pega('volumesFaltantes', 'Volumes Faltantes');
-                        const presentesImp = pega('volumesPresentes', 'Volumes Presentes');
-                        let volumesFaltantesFinal = null;
-                        if (String(faltantesImp).trim()) {
-                            const arr = parseVolumesString(faltantesImp);
-                            volumesFaltantesFinal = arr.length ? arr.join(',') : null;
-                        } else if (String(presentesImp).trim() && totalVolImp > 0) {
-                            const presentes = parseVolumesString(presentesImp);
-                            const falt = [];
-                            for (let i = 1; i <= totalVolImp; i++) if (!presentes.includes(i)) falt.push(i);
-                            volumesFaltantesFinal = falt.length ? falt.join(',') : null;
-                        }
-
-                        // ---- Informações ADICIONAIS (somente importação) ----
                         const extras = {};
                         EXTRAS_MAP.forEach(([alias, nome]) => {
-                            const v = pega(alias);
+                            const v = pegaGrupo(alias);
                             if (v !== '') extras[nome] = (typeof v === 'string') ? v.trim() : v;
                         });
+                        if (locDivergente) extras.localizacaoPorVolume = [...volsArr].sort((a, b) => a.volume - b.volume);
 
                         return {
-                            numeroProcesso: String(pega('numeroProcesso', 'numero_processo', 'Nº do Processo', 'numeroprocessosei')).toUpperCase().trim(),
-                            numVolumes: totalVolImp || 1,
-                            interessado: String(pega('interessado')).toUpperCase().trim(),
-                            assunto: String(pega('assunto', 'tipologia_predominante')).toUpperCase().trim(),
-                            modalidade: String(pega('modalidade')).toUpperCase().trim(),
-                            sala: salaImp,
-                            rua: String(pega('rua', 'Rua_processo')).toUpperCase().trim(),
-                            estante: String(pega('estante')).toUpperCase().trim(),
-                            prateleira: String(pega('prateleira', 'Prateleira_processo')).toUpperCase().trim(),
-                            departamento: String(pega('departamento', 'Area_tranferencia', 'Area_transferencia')).toUpperCase().trim(),
-recebedor: String(pega('recebedor')).toUpperCase().trim(),
-                            volumesFaltantes: volumesFaltantesFinal,
+                            numeroProcesso: g.numProc,
+                            numVolumes: totalVol,
+                            volumesFaltantes: faltantes.length ? faltantes.join(',') : null,
+                            interessado: String(pegaGrupo('interessado')).toUpperCase().trim(),
+                            assunto: String(pegaGrupo('assunto', 'tipologia_predominante')).toUpperCase().trim(),
+                            modalidade: String(pegaGrupo('modalidade')).toUpperCase().trim(),
+                            sala: salasU.join(' / '),
+                            rua: ruasU.join(' / '),
+                            estante: estantesU.join(' / '),
+                            prateleira: prateleirasU.join(' / '),
+                            departamento: String(pegaGrupo('departamento', 'Area_tranferencia', 'Area_transferencia')).toUpperCase().trim(),
+                            recebedor: String(pegaGrupo('recebedor')).toUpperCase().trim(),
                             dadosImportacao: Object.keys(extras).length ? extras : null,
                             dataEntrega: dataEntrega || null,
-                            criadoEm: new Date().toISOString()
+                            criadoEm: new Date().toISOString(),
+                            _volumesPresentes: volumesPresentes,
+                            _faltantes: faltantes
                         };
-                    }).filter(p => p.numeroProcesso);
+                    });
 
-                    if (processosParaInserir.length === 0) {
-                        showMessage("Nenhum processo válido encontrado no arquivo. Verifique se a coluna 'numero_processo' (ou 'numeroProcesso') existe.", "error");
-                        return;
+                    // ===== PASSO 3: Separar NOVOS x EXISTENTES (mesclagem com o acervo) =====
+                    const paraInserir = [], paraAtualizar = [];
+                    processosConsolidados.forEach(p => {
+                        const existente = todosProcessos.find(x => String(x.numeroProcesso || '').toUpperCase().trim() === p.numeroProcesso);
+                        if (existente) paraAtualizar.push({ novo: p, existente });
+                        else paraInserir.push(p);
+                    });
+
+                    let inseridos = 0, mesclados = 0, comFaltantes = 0;
+
+                    // 3a. Inserir processos novos
+                    if (paraInserir.length > 0) {
+                        const payload = paraInserir.map(p => { const { _volumesPresentes, _faltantes, ...resto } = p; return resto; });
+                        const { data: insertedData, error } = await supabase.from('processos_arquivados').insert(payload).select();
+                        if (error) throw error;
+                        inseridos = insertedData.length;
+                        comFaltantes += paraInserir.filter(p => p._faltantes.length > 0).length;
+                        registrarLog('CRIACAO', `Importação em massa: ${inseridos} processo(s) novo(s) cadastrado(s) a partir de ${json.length} linha(s) de volume.`, 'processos_arquivados', null, null, { total: inseridos });
                     }
 
-                    showMessage(`Importando ${processosParaInserir.length} processos...`, "success");
+                    // 3b. Mesclar volumes em processos que JÁ EXISTEM no acervo
+                    for (const { novo, existente } of paraAtualizar) {
+                        const faltExistentes = parseVolumesString(existente.volumesFaltantes);
+                        const totalEx = parseInt(existente.numVolumes) || 0;
+                        const presentesEx = [];
+                        for (let i = 1; i <= totalEx; i++) if (!faltExistentes.includes(i)) presentesEx.push(i);
 
-                    const { data: insertedData, error } = await supabase.from('processos_arquivados').insert(processosParaInserir).select();
+                        const novosVols = novo._volumesPresentes.filter(v => !presentesEx.includes(v));
+                        if (novosVols.length === 0) { avisos.push(`${novo.numeroProcesso}: todos os volumes do arquivo já constam no cadastro (nenhuma alteração).`); continue; }
 
-                    if (error) throw error;
+                        const uniaoPresentes = [...new Set([...presentesEx, ...novo._volumesPresentes])].sort((a, b) => a - b);
+                        const totalFinal = Math.max(...uniaoPresentes);
+                        const faltFinal = [];
+                        for (let i = 1; i <= totalFinal; i++) if (!uniaoPresentes.includes(i)) faltFinal.push(i);
 
-                    if (insertedData && insertedData.length > 0) {
-                        registrarLog('CRIACAO', `Importação em massa de ${insertedData.length} processos.`, 'processos_arquivados', null, null, { total: insertedData.length });
+                        const junta = (a, b) => [...new Set([...String(a || '').split(' / ').map(s => s.trim()).filter(Boolean), ...String(b || '').split(' / ').map(s => s.trim()).filter(Boolean)])].join(' / ');
+
+                        const dadosMerge = {
+                            numVolumes: totalFinal,
+                            volumesFaltantes: faltFinal.length ? faltFinal.join(',') : null,
+                            sala: junta(existente.sala, novo.sala),
+                            rua: junta(existente.rua, novo.rua),
+                            estante: junta(existente.estante, novo.estante),
+                            prateleira: junta(existente.prateleira, novo.prateleira),
+                            ultimaEdicao: new Date().toISOString(),
+                            ultimoEditor: `Importação em massa (${usuarioAtual?.email || 'Sistema'})`
+                        };
+
+                        // Complementa campos gerais que estão vazios no cadastro existente
+                        ['interessado','assunto','modalidade','departamento','recebedor','dataEntrega'].forEach(c => {
+                            if ((!existente[c] || String(existente[c]).trim() === '') && novo[c]) dadosMerge[c] = novo[c];
+                        });
+
+                        // Preserva/mescla detalhe volume a volume em dadosImportacao
+                        const diEx = (existente.dadosImportacao && typeof existente.dadosImportacao === 'object' && !Array.isArray(existente.dadosImportacao)) ? existente.dadosImportacao : {};
+                        const diNovo = novo.dadosImportacao || {};
+                        if (diNovo.localizacaoPorVolume || diEx.localizacaoPorVolume) {
+                            const comb = [...(diEx.localizacaoPorVolume || []), ...(diNovo.localizacaoPorVolume || [])];
+                            const mapaVol = new Map();
+                            comb.forEach(v => { if (v && v.volume && !mapaVol.has(parseInt(v.volume))) mapaVol.set(parseInt(v.volume), v); });
+                            dadosMerge.dadosImportacao = { ...diEx, ...diNovo, localizacaoPorVolume: [...mapaVol.values()].sort((a, b) => a.volume - b.volume) };
+                        } else if (Object.keys(diNovo).length) {
+                            dadosMerge.dadosImportacao = { ...diEx, ...diNovo };
+                        }
+
+                        const { error } = await supabase.from('processos_arquivados').update(dadosMerge).eq('id', existente.id);
+                        if (error) throw error;
+
+                        mesclados++;
+                        if (faltFinal.length > 0) comFaltantes++;
+                        registrarLog('EDICAO', `Importação: volume(s) ${compactarVolumes(novosVols)} adicionado(s) ao processo ${novo.numeroProcesso}.`, 'processos_arquivados', existente.id, existente, { ...existente, ...dadosMerge });
+                        avisos.unshift(`${novo.numeroProcesso}: volume(s) ${compactarVolumes(novosVols)} mesclado(s) no cadastro existente.`);
                     }
 
-                    const comFaltantes = insertedData.filter(p => p.volumesFaltantes).length;
-                    showMessage(`${insertedData.length} processos importados com sucesso!` + (comFaltantes > 0 ? ` ⚠️ ${comFaltantes} com volumes faltantes.` : ''), "success");
-                    
+                    // ===== PASSO 4: Feedback final + refresh de segurança =====
+                    if (inseridos + mesclados > 0) {
+                        const { data: refresh } = await supabase.from('processos_arquivados').select('*');
+                        if (refresh) { todosProcessos = refresh; aplicarFiltroBusca(); renderDashboard(); }
+
+                        let msg = `✅ Importação concluída: ${inseridos} processo(s) novo(s), ${mesclados} existente(s) atualizado(s) com novos volumes.`;
+                        if (comFaltantes > 0) msg += ` ⚠️ ${comFaltantes} processo(s) com volumes faltantes.`;
+                        if (avisos.length) msg += ` | ${avisos.join(' • ')}`;
+                        showMessage(msg, "success");
+                    } else {
+                        showMessage("Nenhum dado novo para importar. " + avisos.join(' • '), "error");
+                    }
+
                 } catch (error) {
                     console.error("Erro ao importar arquivo:", error);
                     showMessage("Erro ao ler/importar o arquivo: " + error.message, "error");
@@ -1459,7 +1599,52 @@ recebedor: String(pega('recebedor')).toUpperCase().trim(),
             reader.readAsArrayBuffer(file);
         });
 
-        // MODAL DE EXCLUSÃO
+        // ====== MODAL LOCALIZAÇÃO POR VOLUME ======
+        window.verLocalizacaoVolumes = function(id) {
+            const p = todosProcessos.find(x => x.id === id);
+            if (!p) return;
+            document.getElementById('volLocNumeroProcesso').textContent = p.numeroProcesso || '—';
+
+            const di = (p.dadosImportacao && typeof p.dadosImportacao === 'object' && !Array.isArray(p.dadosImportacao)) ? p.dadosImportacao : {};
+            const locVol = Array.isArray(di.localizacaoPorVolume) ? di.localizacaoPorVolume : [];
+            const mapaLoc = new Map();
+            locVol.forEach(v => { if (v && v.volume) mapaLoc.set(parseInt(v.volume), v); });
+
+            const faltantes = parseVolumesString(p.volumesFaltantes);
+            const total = parseInt(p.numVolumes) || 0;
+
+            const resumoEl = document.getElementById('volLocResumo');
+            if (faltantes.length > 0) {
+                resumoEl.innerHTML = `<span class="badge-faltantes">⚠️ Faltam: Vol. ${compactarVolumes(faltantes)}</span> <span style="color:#666;font-size:13px;">de ${total} volume(s) do processo</span>`;
+            } else {
+                resumoEl.innerHTML = `<span class="badge-completo">✅ Acervo completo</span> <span style="color:#666;font-size:13px;">— ${total} volume(s)</span>`;
+            }
+
+            const tbody = document.getElementById('volLocBody');
+            tbody.innerHTML = '';
+            if (total <= 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px;color:#999;">Sem informação de volumes.</td></tr>';
+            } else {
+                for (let i = 1; i <= total; i++) {
+                    const loc = mapaLoc.get(i);
+                    const faltou = faltantes.includes(i);
+                    const tr = document.createElement('tr');
+                    if (faltou) tr.classList.add('linha-vol-faltante');
+                    tr.innerHTML = `<td>Vol. ${i}</td>` +
+                        `<td>${faltou ? '<span class="vol-loc-badge-falta">⚠️ FALTANDO</span>' : '<span class="vol-loc-badge-ok">✅ No arquivo</span>'}</td>` +
+                        `<td>${loc && loc.sala ? loc.sala : '—'}</td>` +
+                        `<td>${loc && loc.rua ? loc.rua : '—'}</td>` +
+                        `<td>${loc && loc.estante ? loc.estante : '—'}</td>` +
+                        `<td>${loc && loc.prateleira ? loc.prateleira : '—'}</td>`;
+                    tbody.appendChild(tr);
+                }
+            }
+            document.getElementById('modalLocalizacaoVolumes').style.display = 'flex';
+        };
+
+        window.fecharModalVolumes = function() { document.getElementById('modalLocalizacaoVolumes').style.display = 'none'; };
+
+        // ====== MODAL DE EXCLUSÃO ======
         window.solicitarExclusaoProcesso = function(id) { 
             idProcessoParaExcluir = id; 
             document.getElementById('inputConfirmacaoExclusao').value = ''; 

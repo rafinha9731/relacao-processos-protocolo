@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v2.0 - adicionada a pagina "Transferencia de Localizacao por Volume" -->
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -422,6 +423,44 @@
         .vol-loc-badge-falta { display: inline-block; background-color: #e53935; color: #fff; padding: 2px 10px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
         #tabelaLocalizacaoVolumes tr.linha-vol-faltante td { background-color: #fff8e1 !important; color: #b71c1c; }
         #tabelaLocalizacaoVolumes tr.linha-vol-faltante td:first-child { font-weight: bold; }
+
+        /* ===== PÁGINA 4: TRANSFERÊNCIA DE LOCALIZAÇÃO ===== */
+        .loc-header-row h2 { font-size: var(--section-font); margin: 0; color: var(--primary-color); }
+        .loc-sub { color: #666; font-size: clamp(12px, 1vw, 14px); margin: 4px 0 16px 0; line-height: 1.5; }
+        .loc-search-row { margin-bottom: 14px; max-width: 680px; }
+        .loc-lista-processos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; max-height: 520px; overflow-y: auto; padding: 2px; }
+        .loc-proc-card { background: #fff; border: 1px solid var(--border-color); border-left: 4px solid var(--primary-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, background 0.15s; }
+        .loc-proc-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,86,179,0.15); background: #f4f9ff; }
+        .loc-proc-card .lp-num { font-weight: 800; color: var(--primary-color); font-size: clamp(13px, 1.1vw, 16px); }
+        .loc-proc-card .lp-meta { font-size: clamp(11px, 0.9vw, 13px); color: #555; margin-top: 4px; line-height: 1.4; }
+        .loc-proc-card .lp-badges { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .lp-sem-loc { display: inline-block; background: #eee; color: #777; padding: 2px 10px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
+        .loc-vazio { grid-column: 1 / -1; text-align: center; padding: 30px; color: #999; font-style: italic; }
+        .loc-info-card { background: linear-gradient(135deg, #eef4ff, #f8fbff); border: 1px solid #c9dcf5; border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; }
+        .loc-info-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+        .loc-info-num { font-weight: 800; color: var(--primary-color); font-size: clamp(15px, 1.3vw, 20px); }
+        .loc-info-meta { color: #556; font-size: clamp(11px, 0.95vw, 13px); margin-top: 3px; }
+        .loc-info-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+        .loc-stat-loc { font-size: clamp(11px, 0.95vw, 13px); font-weight: bold; color: #00695c; }
+        .loc-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: #f4f7f6; border: 1px dashed var(--border-color); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
+        .loc-toolbar-title { font-weight: bold; font-size: clamp(11px, 0.95vw, 13px); color: #2d5a8a; white-space: nowrap; }
+        .loc-toolbar input { flex: 1 1 120px; min-width: 100px; max-width: 180px; width: auto; }
+        .loc-vol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
+        .loc-vol-card { background: #fff; border: 1px solid var(--border-color); border-top: 3px solid #2e7d32; border-radius: 10px; padding: 12px 14px; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; animation: fadeInVol 0.25s ease; }
+        .loc-vol-card.loc-alterado { border-top-color: var(--edit-color); box-shadow: 0 2px 10px rgba(255,193,7,0.18); background: #fffdf5; }
+        .loc-vol-card.loc-faltante { border-top-color: #e53935; background: #fafafa; opacity: 0.75; }
+        .loc-vol-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; }
+        .loc-vol-num { font-weight: 800; font-size: clamp(13px, 1.05vw, 15px); }
+        .loc-vol-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .loc-field label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #777; margin-bottom: 2px; }
+        .loc-field input { padding: 6px 8px; }
+        .loc-resumo { margin-top: 14px; font-size: clamp(12px, 1vw, 14px); font-weight: bold; color: #2e7d32; }
+        .loc-resumo.loc-resumo-pendente { color: #b26a00; background: #fff8e1; border: 1px solid #ffe08a; padding: 8px 12px; border-radius: 6px; }
+        .loc-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .loc-actions .btn-cancel { margin: 0; }
+        .loc-resp-field { display: flex; flex-direction: column; margin-left: auto; min-width: 240px; flex: 1; max-width: 340px; }
+        .loc-resp-field label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #777; }
+        .badge-transferencia { background-color: #6f42c1; }
     </style>
 </head>
 <body>
@@ -458,6 +497,7 @@
             <button class="nav-btn active" data-page="dashboard" onclick="navegarPara('dashboard')">📊 Dashboard <span id="navBadgeFaltantes" class="nav-badge"></span></button>
             <button class="nav-btn" data-page="cadastro" onclick="navegarPara('cadastro')">📝 Cadastro / Importação</button>
             <button class="nav-btn" data-page="historico" onclick="navegarPara('historico')">📚 Histórico de Processos</button>
+            <button class="nav-btn" data-page="localizacao" onclick="navegarPara('localizacao')">📍 Transferência de Local</button>
         </nav>
 
         <div id="feedbackMessage" class="message"></div>
@@ -608,9 +648,51 @@
                 <div id="paginationControls" class="pagination"></div>
             </div>
         </div>
+
+        <!-- ================================================== -->
+        <!-- PÁGINA 4: TRANSFERÊNCIA DE LOCALIZAÇÃO             -->
+        <!-- ================================================== -->
+        <div class="page" id="page-localizacao">
+            <div class="dash-header-row">
+                <h2>📍 Transferência de Localização</h2>
+            </div>
+            <p class="loc-sub">Selecione um processo e atualize o local físico de cada volume individualmente. <strong>Cada volume possui um único local</strong> — o sistema impede que o mesmo processo/volume seja registrado em dois locais diferentes ao mesmo tempo.</p>
+
+            <div id="locEtapaSelecao">
+                <div class="form-section">
+                    <div class="loc-search-row">
+                        <div class="search-box"><input type="text" id="locSearchInput" placeholder="Buscar processo por nº, interessado, assunto ou departamento..."></div>
+                    </div>
+                    <div id="locProcessosLista" class="loc-lista-processos"></div>
+                </div>
+            </div>
+
+            <div id="locEtapaEditor" style="display: none;">
+                <div id="locInfoCard" class="loc-info-card"></div>
+                <div class="loc-toolbar">
+                    <span class="loc-toolbar-title">⚡ Aplicar a todos os volumes:</span>
+                    <input type="text" id="locTodos_sala" placeholder="Sala">
+                    <input type="text" id="locTodos_rua" placeholder="Rua">
+                    <input type="text" id="locTodos_estante" placeholder="Estante">
+                    <input type="text" id="locTodos_prateleira" placeholder="Prateleira">
+                    <button type="button" class="btn-volumes" onclick="aplicarLocATodos()">Aplicar</button>
+                </div>
+                <div id="locVolGrid" class="loc-vol-grid"></div>
+                <div id="locResumoAlteracao" class="loc-resumo">Nenhuma alteração pendente.</div>
+                <div class="loc-actions">
+                    <button type="button" id="btnSalvarLoc" onclick="salvarLocalizacaoLoc()">💾 Salvar Alterações</button>
+                    <button type="button" class="btn-cancel" onclick="descartarLoc()">↩️ Descartar</button>
+                    <div class="loc-resp-field">
+                        <label for="locResponsavel">Responsável pela alteração</label>
+                        <input type="text" id="locResponsavel" placeholder="Nome ou e-mail (preenchido automaticamente)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- MODAIS -->
+<!-- MODAIS -->
     <div id="modalDesarquivamento" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close" onclick="fecharModalDesarquivamento()">&times;</button>
@@ -638,7 +720,7 @@
             <div class="audit-header">
                 <div class="audit-filters">
                     <select id="auditFiltroTipo" class="filter-tipo">
-                        <option value="">Todos os tipos</option><option value="CRIACAO">Criação</option><option value="EDICAO">Edição</option><option value="EXCLUSAO">Exclusão</option><option value="DESARQUIVAMENTO">Desarquivamento</option><option value="EXCLUSAO_DESARQ">Exclusão Desarq.</option><option value="DEVOLUCAO_ARQUIVO">Devolução ao Arquivo</option>
+                        <option value="">Todos os tipos</option><option value="CRIACAO">Criação</option><option value="EDICAO">Edição</option><option value="EXCLUSAO">Exclusão</option><option value="DESARQUIVAMENTO">Desarquivamento</option><option value="EXCLUSAO_DESARQ">Exclusão Desarq.</option><option value="DEVOLUCAO_ARQUIVO">Devolução ao Arquivo</option><option value="TRANSFERENCIA">Transf. de Local</option>
                     </select>
                     <input type="text" id="auditFiltroTexto" class="filter-search" placeholder="Buscar por usuário, processo...">
                 </div>
@@ -744,9 +826,9 @@
         auditFiltroTipo.addEventListener('change', () => { auditCurrentPage = 1; renderAuditTable(); });
         auditFiltroTexto.addEventListener('input', () => { auditCurrentPage = 1; renderAuditTable(); });
 
-        const acaoConfig = { CRIACAO: { label: 'Criação', cls: 'badge-criacao', icon: '➕' }, EDICAO: { label: 'Edição', cls: 'badge-edicao', icon: '✏️' }, EXCLUSAO: { label: 'Exclusão', cls: 'badge-exclusao', icon: '🗑️' }, DESARQUIVAMENTO: { label: 'Desarquivamento', cls: 'badge-desarquivamento', icon: '📤' }, EXCLUSAO_DESARQ: { label: 'Excl. Desarq.', cls: 'badge-exclusao-desarq', icon: '🗑️' }, DEVOLUCAO_ARQUIVO: { label: 'Devolução', cls: 'badge-devolucao', icon: '📥' } };
+        const acaoConfig = { CRIACAO: { label: 'Criação', cls: 'badge-criacao', icon: '➕' }, EDICAO: { label: 'Edição', cls: 'badge-edicao', icon: '✏️' }, EXCLUSAO: { label: 'Exclusão', cls: 'badge-exclusao', icon: '🗑️' }, DESARQUIVAMENTO: { label: 'Desarquivamento', cls: 'badge-desarquivamento', icon: '📤' }, EXCLUSAO_DESARQ: { label: 'Excl. Desarq.', cls: 'badge-exclusao-desarq', icon: '🗑️' }, DEVOLUCAO_ARQUIVO: { label: 'Devolução', cls: 'badge-devolucao', icon: '📥' }, TRANSFERENCIA: { label: 'Transf. Local', cls: 'badge-transferencia', icon: '📍' } };
 
-        function renderAuditStats() { const c = { CRIACAO: 0, EDICAO: 0, EXCLUSAO: 0, DESARQUIVAMENTO: 0, EXCLUSAO_DESARQ: 0, DEVOLUCAO_ARQUIVO: 0 }; todosLogs.forEach(l => { if (c[l.tipoAcao] !== undefined) c[l.tipoAcao]++; }); auditStats.innerHTML = `<div class="audit-stat-card"><span class="stat-num">${c.CRIACAO}</span><span class="stat-label">Criações</span></div><div class="audit-stat-card"><span class="stat-num">${c.EDICAO}</span><span class="stat-label">Edições</span></div><div class="audit-stat-card"><span class="stat-num">${c.EXCLUSAO}</span><span class="stat-label">Exclusões</span></div><div class="audit-stat-card"><span class="stat-num">${c.DESARQUIVAMENTO}</span><span class="stat-label">Desarquiv.</span></div><div class="audit-stat-card"><span class="stat-num">${c.DEVOLUCAO_ARQUIVO}</span><span class="stat-label">Devoluções</span></div><div class="audit-stat-card"><span class="stat-num">${c.EXCLUSAO_DESARQ}</span><span class="stat-label">Excl. Desarq.</span></div>`; }
+        function renderAuditStats() { const c = { CRIACAO: 0, EDICAO: 0, EXCLUSAO: 0, DESARQUIVAMENTO: 0, EXCLUSAO_DESARQ: 0, DEVOLUCAO_ARQUIVO: 0, TRANSFERENCIA: 0 }; todosLogs.forEach(l => { if (c[l.tipoAcao] !== undefined) c[l.tipoAcao]++; }); auditStats.innerHTML = `<div class="audit-stat-card"><span class="stat-num">${c.CRIACAO}</span><span class="stat-label">Criações</span></div><div class="audit-stat-card"><span class="stat-num">${c.EDICAO}</span><span class="stat-label">Edições</span></div><div class="audit-stat-card"><span class="stat-num">${c.EXCLUSAO}</span><span class="stat-label">Exclusões</span></div><div class="audit-stat-card"><span class="stat-num">${c.DESARQUIVAMENTO}</span><span class="stat-label">Desarquiv.</span></div><div class="audit-stat-card"><span class="stat-num">${c.DEVOLUCAO_ARQUIVO}</span><span class="stat-label">Devoluções</span></div><div class="audit-stat-card"><span class="stat-num">${c.EXCLUSAO_DESARQ}</span><span class="stat-label">Excl. Desarq.</span></div><div class="audit-stat-card"><span class="stat-num">${c.TRANSFERENCIA}</span><span class="stat-label">Transf. Local</span></div>`; }
         
         function sanitizarDados(d) { if (!d) return null; const c = { ...d }; delete c.criadoEm; delete c.ultimaEdicao; delete c.ultimoEditor; delete c.id; return c; }
 
@@ -978,6 +1060,7 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === pagina));
             localStorage.setItem('ipen_pagina_atual', pagina);
             if (pagina === 'dashboard') renderDashboard();
+            if (pagina === 'localizacao' && typeof renderLocLista === 'function') renderLocLista();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -1073,15 +1156,17 @@
             const labelsM = meses.map(d => d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', ''));
             const chavesM = meses.map(d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
 
-            let cadastros, desarq, devol;
+            let cadastros, desarq, devol, transf;
             if (todosLogs.length > 0) {
                 cadastros = chavesM.map(ch => todosLogs.filter(l => l.tipoAcao === 'CRIACAO' && String(l.timestamp || '').startsWith(ch)).reduce((s, l) => s + ((l.dadosDepois && l.dadosDepois.total) || 1), 0));
                 desarq = chavesM.map(ch => todosLogs.filter(l => l.tipoAcao === 'DESARQUIVAMENTO' && String(l.timestamp || '').startsWith(ch)).length);
                 devol = chavesM.map(ch => todosLogs.filter(l => l.tipoAcao === 'DEVOLUCAO_ARQUIVO' && String(l.timestamp || '').startsWith(ch)).length);
+                transf = chavesM.map(ch => todosLogs.filter(l => l.tipoAcao === 'TRANSFERENCIA' && String(l.timestamp || '').startsWith(ch)).length);
             } else {
                 cadastros = chavesM.map(ch => todosProcessos.filter(p => String(p.criadoEm || '').startsWith(ch)).length);
                 desarq = chavesM.map(ch => todosDesarquivamentos.filter(d => String(d.dataSolicitacao || '').startsWith(ch)).length);
                 devol = chavesM.map(() => 0);
+                transf = chavesM.map(() => 0);
             }
 
             const ctxM = document.getElementById('chartMovimento').getContext('2d');
@@ -1092,7 +1177,8 @@
                     datasets: [
                         { label: 'Cadastros / Entradas', data: cadastros, backgroundColor: '#0056b3', borderRadius: 4 },
                         { label: 'Desarquivamentos', data: desarq, backgroundColor: '#17a2b8', borderRadius: 4 },
-                        { label: 'Devoluções ao Arquivo', data: devol, backgroundColor: '#28a745', borderRadius: 4 }
+                        { label: 'Devoluções ao Arquivo', data: devol, backgroundColor: '#28a745', borderRadius: 4 },
+                        { label: 'Transf. de Local', data: transf, backgroundColor: '#6f42c1', borderRadius: 4 }
                     ]
                 },
                 options: {
@@ -1280,7 +1366,7 @@
             showMessage("Exportação para PDF concluída!", "success");
         });
 
-        function renderTabela() {
+function renderTabela() {
             const tbody = abaAtual === 'arquivados' ? tableBody : desarqTableBody; tbody.innerHTML = '';
             const tp = Math.ceil(processosFiltrados.length / itemsPerPage); if (currentPage > tp) currentPage = Math.max(1, tp);
             const paginaAtual = processosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -1745,41 +1831,40 @@
                 doc.text(lines, x, currentY); 
                 return currentY + (lines.length * lineHeight); 
             };
-
             // Cabeçalho
-            doc.setFontSize(10); doc.setFont(undefined, 'bold'); 
-            doc.text("CIPRO - COMITÊ INTERNO DE SERVIÇO DE PROTOCOLO", margin, y); y += 5; 
-            doc.setFont(undefined, 'normal'); 
-            doc.text("Localizado: 1º Subsolo bloco \"A\" do Prédio de Administração IPEN/CNEN", margin, y); y += 5; 
+            doc.setFontSize(10); doc.setFont(undefined, 'bold');
+            doc.text("CIPRO - COMITÊ INTERNO DE SERVIÇO DE PROTOCOLO", margin, y); y += 5;
+            doc.setFont(undefined, 'normal');
+            doc.text("Localizado: 1º Subsolo bloco \"A\" do Prédio de Administração IPEN/CNEN", margin, y); y += 5;
             doc.text("Ramais: 5551 e 8180", margin, y); y += 15;
 
             // Título
-            doc.setFontSize(14); doc.setFont(undefined, 'bold'); 
-            doc.text("TERMO DE ENTREGA E RECEBIMENTO", pageWidth / 2, y, { align: "center" }); y += 8; 
+            doc.setFontSize(14); doc.setFont(undefined, 'bold');
+            doc.text("TERMO DE ENTREGA E RECEBIMENTO", pageWidth / 2, y, { align: "center" }); y += 8;
             doc.text("DE PROCESSO FÍSICO", pageWidth / 2, y, { align: "center" }); y += 15;
 
             // Seção 1
-            doc.setFontSize(11); doc.text("1. IDENTIFICAÇÃO DO PROCESSO", margin, y); y += 8; 
-            doc.setFont(undefined, 'normal'); 
-            doc.text(`Número do Processo: ${dados.numeroProcesso || ''}`, margin, y); y += 6; 
-            doc.text(`Departamento Solicitante: ${dados.departamentoSolicitante || ''}`, margin, y); y += 6; 
-            doc.text(`Pessoa Responsável: ${dados.responsavel || ''}`, margin, y); y += 6; 
-            doc.text(`Documento de Autorização: ${dados.docAutorizacao || ''}`, margin, y); y += 6; 
+            doc.setFontSize(11); doc.text("1. IDENTIFICAÇÃO DO PROCESSO", margin, y); y += 8;
+            doc.setFont(undefined, 'normal');
+            doc.text(`Número do Processo: ${dados.numeroProcesso || ''}`, margin, y); y += 6;
+            doc.text(`Departamento Solicitante: ${dados.departamentoSolicitante || ''}`, margin, y); y += 6;
+            doc.text(`Pessoa Responsável: ${dados.responsavel || ''}`, margin, y); y += 6;
+            doc.text(`Documento de Autorização: ${dados.docAutorizacao || ''}`, margin, y); y += 6;
             doc.text(`Nº SEI do Termo: ${dados.seiTermo || ''}`, margin, y); y += 12;
 
             // Seção 2 - Quantificação de Volumes e Páginas (3 colunas)
-            doc.setFont(undefined, 'bold'); doc.text("2. QUANTIFICAÇÃO DE VOLUMES E PÁGINAS", margin, y); y += 8; 
-            doc.setFont(undefined, 'normal'); 
+            doc.setFont(undefined, 'bold'); doc.text("2. QUANTIFICAÇÃO DE VOLUMES E PÁGINAS", margin, y); y += 8;
+            doc.setFont(undefined, 'normal');
             doc.text(`Total de Volumes Retirados: ${dados.qtdVolumes || 0}`, margin, y); y += 6;
-            
-            let totalPaginas = 0; 
-            if (dados.volumesDetalhes && dados.volumesDetalhes.length > 0) { 
+
+            let totalPaginas = 0;
+            if (dados.volumesDetalhes && dados.volumesDetalhes.length > 0) {
                 const colWidth = 55;
                 const startX = margin + 5;
                 const startY = y;
                 let totalRows = 0;
 
-                dados.volumesDetalhes.forEach((v, index) => { 
+                dados.volumesDetalhes.forEach((v, index) => {
                     const col = index % 3;
                     const row = Math.floor(index / 3);
                     totalRows = row + 1;
@@ -1787,18 +1872,18 @@
                     const posX = startX + (col * colWidth);
                     const posY = startY + (row * 6);
 
-                    doc.text(`- Volume ${v.volume}: ${v.paginas} pág(s)`, posX, posY); 
-                    totalPaginas += v.paginas; 
-                }); 
+                    doc.text(`- Volume ${v.volume}: ${v.paginas} pág(s)`, posX, posY);
+                    totalPaginas += v.paginas;
+                });
 
-                y = startY + (totalRows * 6) + 2; 
+                y = startY + (totalRows * 6) + 2;
             }
-            
-            doc.setFont(undefined, 'bold'); 
+
+            doc.setFont(undefined, 'bold');
             doc.text(`Total Geral de Páginas: ${totalPaginas}`, margin, y); y += 12;
 
             // Seção 3
-            doc.setFont(undefined, 'bold'); doc.text("3. DECLARAÇÃO DE ENTREGA E RETIRADA (CARGA)", margin, y); y += 8; 
+            doc.setFont(undefined, 'bold'); doc.text("3. DECLARAÇÃO DE ENTREGA E RETIRADA (CARGA)", margin, y); y += 8;
             doc.setFont(undefined, 'normal');
             y = addWrappedText(`Pelo presente instrumento, o Comitê Interno de Serviço de Protocolo (CIPRO) realiza a entrega física dos autos do processo epigrafado, contendo ${totalPaginas} folha(s) numeradas e rubricadas, distribuída(s) em ${dados.qtdVolumes || 0} volume(s), em perfeito estado de conservação.`, margin, y, 5) + 5;
             y = addWrappedText(`A colaboradora abaixo identificada, devidamente autorizada pelo setor solicitante (${dados.departamentoSolicitante || ''}), declara para os devidos fins que:`, margin, y, 5) + 5;
@@ -1806,27 +1891,27 @@
             y = addWrappedText(`II - Assume integral responsabilidade pela guarda, zelo, integridade, confidencialidade e segurança das informações nele contidas;`, margin + 5, y, 5) + 3;
             y = addWrappedText(`III - Compromete-se a restituir o respectivo processo físico a este Setor de Protocolo assim que concluída a finalidade do desarquivamento, sob as penas das normas regulamentares vigentes.`, margin + 5, y, 5) + 10;
 
-            doc.setFontSize(9); doc.setFont(undefined, 'italic'); 
+            doc.setFontSize(9); doc.setFont(undefined, 'italic');
             doc.text("(Este documento será assinado eletronicamente via Sistema Eletrônico de Informações - SEI)", margin, y); y += 12;
 
             // Seção 4 - ASSINATURAS
-            doc.setFont(undefined, 'bold'); doc.setFontSize(11); 
+            doc.setFont(undefined, 'bold'); doc.setFontSize(11);
             doc.text("4. ASSINATURAS", margin, y); y += 8;
-            
+
             doc.setFontSize(10);
-            
-            doc.setFont(undefined, 'bold'); 
-            doc.text("Entregue por:", margin, y); 
-            doc.setFont(undefined, 'normal'); 
-            doc.text(`${dados.funcionarioCIPRO || 'CIPRO / IPEN'}`, margin, y + 5); 
+
+            doc.setFont(undefined, 'bold');
+            doc.text("Entregue por:", margin, y);
+            doc.setFont(undefined, 'normal');
+            doc.text(`${dados.funcionarioCIPRO || 'CIPRO / IPEN'}`, margin, y + 5);
             doc.setFontSize(8); doc.setFont(undefined, 'italic');
             doc.text("CIPRO / IPEN", margin, y + 9);
 
             const col2X = margin + 95;
-            doc.setFontSize(10); doc.setFont(undefined, 'bold'); 
-            doc.text("Recebido por:", col2X, y); 
-            doc.setFont(undefined, 'normal'); 
-            doc.text(`${dados.responsavel || ''}`, col2X, y + 5); 
+            doc.setFontSize(10); doc.setFont(undefined, 'bold');
+            doc.text("Recebido por:", col2X, y);
+            doc.setFont(undefined, 'normal');
+            doc.text(`${dados.responsavel || ''}`, col2X, y + 5);
             doc.setFontSize(8); doc.setFont(undefined, 'italic');
             if (dados.departamentoSolicitante) {
                 doc.text(`${dados.departamentoSolicitante}`, col2X, y + 9);
@@ -1834,6 +1919,222 @@
 
             doc.save(`Termo_Desarquivamento_${dados.numeroProcesso ? dados.numeroProcesso.replace(/[\/\\:]/g, '_') : 'processo'}.pdf`);
         }
+        // ============================================================
+        // PÁGINA 4: TRANSFERÊNCIA DE LOCALIZAÇÃO POR VOLUME
+        // Cada volume possui exatamente UM local (sala/rua/estante/
+        // prateleira). A estrutura "1 registro por volume" impede
+        // automaticamente que o mesmo processo+volume fique em dois
+        // locais diferentes ao mesmo tempo.
+        // ============================================================
+        let locProcessoAtual = null;
+        const LOC_CAMPOS = ['sala', 'rua', 'estante', 'prateleira'];
+        const LOC_LABELS = { sala: 'Sala', rua: 'Rua', estante: 'Estante', prateleira: 'Prateleira' };
+
+        function locMapDeProcesso(p) {
+            const di = (p.dadosImportacao && typeof p.dadosImportacao === 'object' && !Array.isArray(p.dadosImportacao)) ? p.dadosImportacao : {};
+            const arr = Array.isArray(di.localizacaoPorVolume) ? di.localizacaoPorVolume : [];
+            const mapa = new Map();
+            arr.forEach(v => {
+                if (!v || !v.volume) return;
+                const n = parseInt(v.volume);
+                if (!mapa.has(n)) mapa.set(n, { sala: String(v.sala || '').trim(), rua: String(v.rua || '').trim(), estante: String(v.estante || '').trim(), prateleira: String(v.prateleira || '').trim() });
+            });
+            return mapa;
+        }
+
+        function renderLocLista() {
+            if (locProcessoAtual) return;
+            const termo = (document.getElementById('locSearchInput').value || '').toLowerCase().trim();
+            const lista = todosProcessos
+                .filter(p => { if (!termo) return true; return [p.numeroProcesso, p.interessado, p.assunto, p.departamento].some(v => v && String(v).toLowerCase().includes(termo)); })
+                .sort((a, b) => String(a.numeroProcesso).localeCompare(String(b.numeroProcesso), 'pt-BR', { numeric: true }));
+            const cont = document.getElementById('locProcessosLista');
+            cont.innerHTML = '';
+            if (!lista.length) { cont.innerHTML = '<div class="loc-vazio">Nenhum processo encontrado para a busca atual.</div>'; return; }
+            lista.forEach(p => {
+                const falt = parseVolumesString(p.volumesFaltantes);
+                const temLoc = locMapDeProcesso(p).size > 0;
+                const card = document.createElement('div');
+                card.className = 'loc-proc-card';
+                card.innerHTML = `<div class="lp-num">📁 ${p.numeroProcesso || '—'}</div>` +
+                    `<div class="lp-meta">${[p.interessado, p.assunto].filter(Boolean).join(' • ') || 'Sem interessado/assunto informado'}</div>` +
+                    `<div class="lp-badges"><span class="badge-completo">📦 ${p.numVolumes || 0} vol.</span>` +
+                    (falt.length ? `<span class="badge-faltantes">⚠️ Faltam: Vol. ${compactarVolumes(falt)}</span>` : '') +
+                    (temLoc ? '<span class="vol-loc-badge-ok">📍 Com detalhe por volume</span>' : '<span class="lp-sem-loc">Sem detalhe por volume</span>') +
+                    `</div>`;
+                card.addEventListener('click', () => selecionarProcessoLoc(p.id));
+                cont.appendChild(card);
+            });
+        }
+
+        window.selecionarProcessoLoc = function(id) {
+            const p = todosProcessos.find(x => x.id === id);
+            if (!p) return;
+            locProcessoAtual = p;
+            document.getElementById('locEtapaSelecao').style.display = 'none';
+            document.getElementById('locEtapaEditor').style.display = 'block';
+            renderLocEditor();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        function renderLocEditor() {
+            const p = locProcessoAtual;
+            if (!p) return;
+            const faltantes = parseVolumesString(p.volumesFaltantes);
+            const mapa = locMapDeProcesso(p);
+            const total = parseInt(p.numVolumes) || 0;
+            const presentes = [];
+            for (let i = 1; i <= total; i++) if (!faltantes.includes(i)) presentes.push(i);
+            const comLoc = presentes.filter(i => { const l = mapa.get(i); return l && (l.sala || l.rua || l.estante || l.prateleira); }).length;
+
+            document.getElementById('locInfoCard').innerHTML =
+                `<div class="loc-info-topo"><div>` +
+                `<div class="loc-info-num">📁 ${p.numeroProcesso || '—'}</div>` +
+                `<div class="loc-info-meta">${[p.interessado ? 'Interessado: ' + p.interessado : '', p.assunto ? 'Assunto: ' + p.assunto : '', p.departamento ? 'Deptº: ' + p.departamento : ''].filter(Boolean).join(' • ') || 'Sem informações complementares'}</div>` +
+                `</div><button type="button" class="btn-small-modelo" onclick="voltarLocSelecao()">← Trocar processo</button></div>` +
+                `<div class="loc-info-stats">` +
+                `<span class="badge-completo">📦 ${total} volume(s)</span>` +
+                (faltantes.length ? `<span class="badge-faltantes">⚠️ Faltando: Vol. ${compactarVolumes(faltantes)}</span>` : '<span class="vol-loc-badge-ok">✅ Acervo completo</span>') +
+                `<span class="loc-stat-loc">📍 ${comLoc} de ${presentes.length} volume(s) com localização definida</span>` +
+                `</div>`;
+
+            const respEl = document.getElementById('locResponsavel');
+            if (respEl && !respEl.value.trim()) respEl.value = (usuarioAtual && usuarioAtual.email) || '';
+
+            LOC_CAMPOS.forEach(c => { const el = document.getElementById('locTodos_' + c); if (el) el.value = ''; });
+
+            const grid = document.getElementById('locVolGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= total; i++) {
+                const falta = faltantes.includes(i);
+                const l = mapa.get(i) || { sala: '', rua: '', estante: '', prateleira: '' };
+                const card = document.createElement('div');
+                card.className = 'loc-vol-card' + (falta ? ' loc-faltante' : '');
+                card.dataset.vol = i;
+                card.dataset.original = JSON.stringify(l);
+                card.innerHTML =
+                    `<div class="loc-vol-head"><span class="loc-vol-num">📦 Volume ${i}</span>` +
+                    (falta ? '<span class="vol-loc-badge-falta">⚠️ Faltando</span>' : '<span class="vol-loc-badge-ok">✅ No arquivo</span>') +
+                    `</div>` +
+                    `<div class="loc-vol-fields">` +
+                    LOC_CAMPOS.map(c => `<div class="loc-field"><label>${LOC_LABELS[c]}</label><input type="text" id="locIn_${c}_${i}" value="${(l[c] || '').replace(/"/g, '&quot;')}" placeholder="${falta ? '—' : 'Não informado'}"${falta ? ' disabled' : ''}></div>`).join('') +
+                    `</div>`;
+                grid.appendChild(card);
+                if (!falta) card.querySelectorAll('input').forEach(inp => inp.addEventListener('input', marcarAlteradosLoc));
+            }
+            marcarAlteradosLoc();
+        }
+
+        function marcarAlteradosLoc() {
+            document.querySelectorAll('#locVolGrid .loc-vol-card').forEach(card => {
+                const vol = card.dataset.vol;
+                let original = {};
+                try { original = JSON.parse(card.dataset.original || '{}'); } catch (e) {}
+                let mudou = false;
+                LOC_CAMPOS.forEach(c => { const inp = document.getElementById(`locIn_${c}_${vol}`); if (inp && (inp.value || '').trim() !== (original[c] || '')) mudou = true; });
+                card.classList.toggle('loc-alterado', mudou);
+            });
+            const el = document.getElementById('locResumoAlteracao');
+            if (el) {
+                const n = document.querySelectorAll('#locVolGrid .loc-vol-card.loc-alterado').length;
+                el.textContent = n > 0 ? `✏️ ${n} volume(s) com alterações ainda não salvas.` : 'Nenhuma alteração pendente.';
+                el.className = 'loc-resumo' + (n > 0 ? ' loc-resumo-pendente' : '');
+            }
+        }
+
+        window.aplicarLocATodos = function() {
+            const valores = {};
+            let algum = false;
+            LOC_CAMPOS.forEach(c => { const el = document.getElementById('locTodos_' + c); valores[c] = el ? (el.value || '').trim() : ''; if (valores[c]) algum = true; });
+            if (!algum) { showMessage('Preencha ao menos um campo da barra "Aplicar a todos".', 'error'); return; }
+            document.querySelectorAll('#locVolGrid .loc-vol-card:not(.loc-faltante)').forEach(card => {
+                const vol = card.dataset.vol;
+                LOC_CAMPOS.forEach(c => { const inp = document.getElementById(`locIn_${c}_${vol}`); if (inp && valores[c]) inp.value = valores[c]; });
+            });
+            marcarAlteradosLoc();
+            showMessage('Localização aplicada a todos os volumes presentes. Revise e clique em Salvar.', 'success');
+        };
+
+        window.salvarLocalizacaoLoc = async function() {
+            if (!locProcessoAtual) return;
+            const p = locProcessoAtual;
+            const faltantes = parseVolumesString(p.volumesFaltantes);
+            const total = parseInt(p.numVolumes) || 0;
+
+            const localizacaoPorVolume = [];
+            const alterados = [];
+            for (let i = 1; i <= total; i++) {
+                if (faltantes.includes(i)) continue;
+                const l = {};
+                LOC_CAMPOS.forEach(c => { const inp = document.getElementById(`locIn_${c}_${i}`); l[c] = inp ? inp.value.trim().toUpperCase() : ''; });
+                const temAlgo = l.sala || l.rua || l.estante || l.prateleira;
+                let original = {};
+                const cardEl = document.querySelector(`#locVolGrid .loc-vol-card[data-vol="${i}"]`);
+                try { original = JSON.parse(cardEl ? cardEl.dataset.original : '{}'); } catch (e) {}
+                if (LOC_CAMPOS.some(c => (l[c] || '') !== (original[c] || ''))) alterados.push(i);
+                if (!temAlgo) continue;
+                localizacaoPorVolume.push({ volume: i, sala: l.sala, rua: l.rua, estante: l.estante, prateleira: l.prateleira });
+            }
+
+            if (!alterados.length) { showMessage('Nenhuma alteração detectada — nada para salvar.', 'error'); return; }
+            if (!localizacaoPorVolume.length) { showMessage('Não é possível salvar: nenhum volume com localização preenchida. Preencha ao menos a Sala de cada volume.', 'error'); return; }
+
+            // REGRA DE INTEGRIDADE: cada volume aparece no máximo 1 vez,
+            // garantindo 1 único local por processo+volume.
+            const volsSalvos = localizacaoPorVolume.map(v => v.volume);
+            if (new Set(volsSalvos).size !== volsSalvos.length) { showMessage('Erro de validação: o mesmo volume apareceria em dois registros. Revise os dados.', 'error'); return; }
+
+            const nomeResp = (document.getElementById('locResponsavel').value || '').trim().toUpperCase() || ((usuarioAtual && usuarioAtual.email) || 'Sistema');
+
+            const junta = arr => [...new Set(arr.filter(Boolean))].join(' / ');
+            const dadosMerge = {
+                sala: junta(localizacaoPorVolume.map(v => v.sala)),
+                rua: junta(localizacaoPorVolume.map(v => v.rua)),
+                estante: junta(localizacaoPorVolume.map(v => v.estante)),
+                prateleira: junta(localizacaoPorVolume.map(v => v.prateleira)),
+                ultimaEdicao: new Date().toISOString(),
+                ultimoEditor: `Transferência de local (${nomeResp})`
+            };
+
+            const di = (p.dadosImportacao && typeof p.dadosImportacao === 'object' && !Array.isArray(p.dadosImportacao)) ? { ...p.dadosImportacao } : {};
+            if (localizacaoPorVolume.length) di.localizacaoPorVolume = [...localizacaoPorVolume].sort((a, b) => a.volume - b.volume);
+            else delete di.localizacaoPorVolume;
+            dadosMerge.dadosImportacao = Object.keys(di).length ? di : null;
+
+            const btn = document.getElementById('btnSalvarLoc');
+            btn.disabled = true; btn.textContent = '💾 Salvando...';
+            try {
+                const { error } = await supabase.from('processos_arquivados').update(dadosMerge).eq('id', p.id);
+                if (error) throw error;
+
+                const idx = todosProcessos.findIndex(x => x.id === p.id);
+                if (idx >= 0) todosProcessos[idx] = { ...p, ...dadosMerge };
+                locProcessoAtual = idx >= 0 ? todosProcessos[idx] : { ...p, ...dadosMerge };
+
+                registrarLog('TRANSFERENCIA', `Transferência de local no processo ${p.numeroProcesso}. Volume(s) movimentado(s): ${compactarVolumes(alterados)}. Responsável: ${nomeResp}`, 'processos_arquivados', p.id, p, { ...p, ...dadosMerge });
+                showMessage(`✅ Localização salva com sucesso! ${alterados.length} volume(s) atualizado(s).`, 'success');
+                renderLocEditor();
+                aplicarFiltroBusca();
+            } catch (error) {
+                console.error(error);
+                showMessage('Erro ao salvar localização: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false; btn.textContent = '💾 Salvar Alterações';
+            }
+        };
+
+        window.descartarLoc = function() { if (locProcessoAtual) { renderLocEditor(); showMessage('Alterações descartadas — valores originais restaurados.', 'success'); } };
+
+        window.voltarLocSelecao = function() {
+            locProcessoAtual = null;
+            document.getElementById('locEtapaEditor').style.display = 'none';
+            document.getElementById('locEtapaSelecao').style.display = 'block';
+            renderLocLista();
+        };
+
+        const locSearchInputEl = document.getElementById('locSearchInput');
+        if (locSearchInputEl) locSearchInputEl.addEventListener('input', () => { if (!locProcessoAtual) renderLocLista(); });
+
     </script>
 </body>
 </html>

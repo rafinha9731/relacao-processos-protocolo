@@ -296,6 +296,11 @@
         #tabelaArquivados thead th { cursor: pointer; user-select: none; }
         #tabelaArquivados thead th:last-child { cursor: default; }
 
+        /* [OCULTAR-COLUNAS] Oculta as colunas "Modalidade" (5ª) e "Departamento" (10ª)
+           da lista de processos arquivados. Para exibi-las novamente, basta remover este bloco. */
+        #tabelaArquivados thead th:nth-child(5), #tabelaArquivados tbody td:nth-child(5),
+        #tabelaArquivados thead th:nth-child(10), #tabelaArquivados tbody td:nth-child(10) { display: none; }
+
         #tabelaArquivados th:last-child, #tabelaArquivados td:last-child { position: sticky; right: 0; z-index: 4; box-shadow: -3px 0 6px rgba(0,0,0,0.08); }
         #tabelaArquivados th:last-child { background-color: var(--primary-color); z-index: 5; }
         #tabelaArquivados td:last-child { background-color: #fff; }
@@ -411,6 +416,9 @@
         #tabelaArquivados tr.linha-incompleta:hover td { background-color: #ffe9b8 !important; }
         .badge-faltantes { display: inline-block; background-color: #e53935; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
         .badge-completo { display: inline-block; background-color: #2e7d32; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
+        .badge-sei { display: inline-block; background-color: #e7f0fb; color: #0056b3; border: 1px solid #b8d8fb; padding: 2px 8px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
+        .badge-dest { display: inline-block; background-color: #fff3e0; color: #e65100; border: 1px solid #ffd8a8; padding: 2px 8px; border-radius: 10px; font-size: clamp(9px, 0.85vw, 11px); font-weight: bold; white-space: nowrap; }
+        .proc-num-cell { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .filtro-incompletos { display: flex; align-items: center; gap: 5px; font-weight: bold; font-size: clamp(11px, 1vw, 14px); cursor: pointer; white-space: nowrap; }
         .filtro-incompletos input { width: auto; transform: scale(1.2); accent-color: #e53935; cursor: pointer; }
         .contador-badge { font-size: clamp(10px, 0.9vw, 13px); background: #e53935; color: #fff; border-radius: 10px; padding: 2px 10px; font-weight: bold; display: none; vertical-align: middle; }
@@ -796,7 +804,7 @@
         let todosProcessos = [], todosDesarquivamentos = [], todosLogs = [], processosFiltrados = [], logsFiltrados = [];
         let currentPage = 1, auditCurrentPage = 1, itemsPerPage = 15, auditItemsPerPage = 20, abaAtual = 'arquivados';
         let usuarioAtual = null, ipUsuario = 'Não detectado', idProcessoParaExcluir = null;
-	let sortColumn = null; let sortDirection = 'asc';
+        let sortColumn = null; let sortDirection = 'asc';
         let sistemaIniciado = false;
         let chartAcervo = null, chartMovimento = null;
 
@@ -1230,7 +1238,7 @@
             const loadProcessos = async () => {
                 const { data, error } = await supabase.from('processos_arquivados').select('*');
                 if (error) { console.error("Erro crítico:", error); showMessage("Erro ao carregar processos.", "error"); return; }
-                todosProcessos = data || [];
+                todosProcessos = (data || []).map(item => limparRegistroMojibake(item, 0));
                 aplicarFiltroBusca();
                 renderDashboard();
             };
@@ -1239,7 +1247,7 @@
             const loadDesarquivamentos = async () => {
                 const { data, error } = await supabase.from('desarquivamentos').select('*');
                 if (error) { console.error("Erro:", error); return; }
-                todosDesarquivamentos = data || [];
+                todosDesarquivamentos = (data || []).map(item => limparRegistroMojibake(item, 0));
                 if (abaAtual === 'desarquivados') aplicarFiltroBusca();
                 renderDashboard();
             };
@@ -1248,7 +1256,7 @@
             const loadLogs = async () => {
                 const { data, error } = await supabase.from('logs_auditoria').select('*');
                 if (error) { console.warn("[Audit] Falha:", error.message); return; }
-                todosLogs = data || [];
+                todosLogs = (data || []).map(item => limparRegistroMojibake(item, 0));
                 atualizarAuditBadge();
                 if (modalAuditoria.style.display === 'flex') { renderAuditStats(); renderAuditTable(); }
                 renderDashboard();
@@ -1282,7 +1290,7 @@
             const soIncompletos = filtroIncompletos.checked && abaAtual === 'arquivados';
             processosFiltrados = (abaAtual === 'arquivados' ? todosProcessos : todosDesarquivamentos).filter(p => {
                 if (soIncompletos && parseVolumesString(p.volumesFaltantes).length === 0) return false;
-                const campos = abaAtual === 'arquivados' ? [p.numeroProcesso, p.interessado, p.assunto, p.departamento, p.recebedor, p.rua, p.volumesFaltantes] : [p.numeroProcesso, p.departamentoSolicitante, p.responsavel, p.docAutorizacao];
+                const campos = abaAtual === 'arquivados' ? [p.numeroProcesso, p.interessado, p.assunto, p.departamento, p.recebedor, p.rua, p.volumesFaltantes, getAnoDest(p), getTipologia(p), getResponsavelTransf(p)] : [p.numeroProcesso, p.departamentoSolicitante, p.responsavel, p.docAutorizacao];
                 return campos.some(v => v && String(v).toLowerCase().includes(termo));
             });
             ordenarProcessos();
@@ -1321,7 +1329,11 @@
                 "Volumes Faltantes": p.volumesFaltantes ? compactarVolumes(parseVolumesString(p.volumesFaltantes)) : '',
                 "Data Entrega": formatarDataTexto(p.dataEntrega),
                 "Editado por": p.ultimoEditor || '',
-                "Última Edição": formatarTimestampSupabase(p.ultimaEdicao)
+                "Última Edição": formatarTimestampSupabase(p.ultimaEdicao),
+                "SEI (sim/não)": getSeiFlag(p) ? 'Sim' : 'Não',
+                "Ano Destinação": getAnoDest(p),
+                "Tipologia Predominante": getTipologia(p),
+                "Responsável Transferência": getResponsavelTransf(p)
             }));
 
             const ws = XLSX.utils.json_to_sheet(dadosParaExcel);
@@ -1342,7 +1354,7 @@
             const doc = new jsPDF('l', 'mm', 'a4');
 
             doc.autoTable({
-                head: [['Nº Processo', 'Vol', 'Interessado', 'Assunto', 'Sala', 'Rua', 'Est', 'Prat', 'Departamento', 'Recebedor', 'Data Entrega', 'Vol. Faltantes']],
+                head: [['Nº Processo', 'Vol', 'Interessado', 'Assunto', 'Sala', 'Rua', 'Est', 'Prat', 'Departamento', 'Recebedor', 'Data Entrega', 'Vol. Faltantes', 'Dest.']],
                 body: processosFiltrados.map(p => [
                     p.numeroProcesso || '',
                     p.numVolumes || '',
@@ -1355,11 +1367,12 @@
                     p.departamento || '',
                     p.recebedor || '',
                     formatarDataTexto(p.dataEntrega),
-                    p.volumesFaltantes ? compactarVolumes(parseVolumesString(p.volumesFaltantes)) : '—'
+                    p.volumesFaltantes ? compactarVolumes(parseVolumesString(p.volumesFaltantes)) : '—',
+                    getAnoDest(p) || ''
                 ]),
                 styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
                 headStyles: { fillColor: [0, 86, 179], textColor: 255, fontStyle: 'bold' },
-                columnStyles: { 0: { cellWidth: 30 }, 2: { cellWidth: 40 }, 3: { cellWidth: 40 }, 11: { cellWidth: 25 } }
+                columnStyles: { 0: { cellWidth: 30 }, 2: { cellWidth: 40 }, 3: { cellWidth: 40 }, 11: { cellWidth: 25 }, 12: { cellWidth: 14 } }
             });
 
             doc.save("processos_arquivados.pdf");
@@ -1384,7 +1397,10 @@ function renderTabela() {
                         // Botão de localização por volume (exibido quando há detalhe salvo na importação)
                         const temLocVol = (p.dadosImportacao && Array.isArray(p.dadosImportacao.localizacaoPorVolume) && p.dadosImportacao.localizacaoPorVolume.length > 0);
                         const btnLocVol = temLocVol ? `<button class="btn-action btn-volumes" onclick="verLocalizacaoVolumes('${p.id}')">📍 Local. por Volume</button>` : '';
-                        tr.innerHTML = `<td>${p.numeroProcesso || ''}</td><td>${p.numVolumes || ''}</td><td>${p.interessado || ''}</td><td>${p.assunto || ''}</td><td>${p.modalidade || ''}</td><td>${p.sala || ''}</td><td>${p.rua || ''}</td><td>${p.estante || ''}</td><td>${p.prateleira || ''}</td><td>${p.departamento || ''}</td><td>${p.recebedor || ''}</td><td>${formatarDataTexto(p.dataEntrega)}</td><td>${p.ultimoEditor || '—'}</td><td>${formatarTimestampSupabase(p.ultimaEdicao)}</td><td>${celSituacao}</td><td><div class="acoes-cell">${btnLocVol}<button class="btn-action btn-edit" onclick="editarProcesso('${p.id}')">✏️ Editar</button><button class="btn-action btn-unarchive" onclick="abrirModalDesarquivamento('${p.id}', '${p.numeroProcesso}')">📤 Desarquivar</button><button class="btn-action btn-danger" onclick="solicitarExclusaoProcesso('${p.id}')">🗑️ Excluir</button></div></td>`;
+                        const badgeSEI = getSeiFlag(p) ? `<span class="badge-sei" title="Processo disponível no SEI">SEI</span>` : '';
+                        const anoDestImp = getAnoDest(p);
+                        const badgeDest = anoDestImp ? `<span class="badge-dest" title="Ano previsto de destinação/eliminação">Dest. ${anoDestImp}</span>` : '';
+                        tr.innerHTML = `<td><div class="proc-num-cell"><span>${p.numeroProcesso || ''}</span>${badgeSEI}${badgeDest}</div></td><td>${p.numVolumes || ''}</td><td>${p.interessado || ''}</td><td>${p.assunto || ''}</td><td>${p.modalidade || ''}</td><td>${p.sala || ''}</td><td>${p.rua || ''}</td><td>${p.estante || ''}</td><td>${p.prateleira || ''}</td><td>${p.departamento || ''}</td><td>${p.recebedor || ''}</td><td>${formatarDataTexto(p.dataEntrega)}</td><td>${p.ultimoEditor || '—'}</td><td>${formatarTimestampSupabase(p.ultimaEdicao)}</td><td>${celSituacao}</td><td><div class="acoes-cell">${btnLocVol}<button class="btn-action btn-edit" onclick="editarProcesso('${p.id}')">✏️ Editar</button><button class="btn-action btn-unarchive" onclick="abrirModalDesarquivamento('${p.id}', '${p.numeroProcesso}')">📤 Desarquivar</button><button class="btn-action btn-danger" onclick="solicitarExclusaoProcesso('${p.id}')">🗑️ Excluir</button></div></td>`;
                         tbody.appendChild(tr);
                     });
                 }
@@ -1432,20 +1448,24 @@ function renderTabela() {
         function cancelarEdicao() { document.getElementById('docId').value = ''; processForm.reset(); editorField.style.display = 'none'; formTitle.textContent = "Novo Cadastro de Processo"; submitBtn.textContent = "Cadastrar Processo"; cancelBtn.style.display = 'none'; limparVolumesCadastro(); }
         cancelBtn.addEventListener('click', cancelarEdicao);
 
-        // ====== BAIXAR MODELO CSV (1 linha = 1 volume) ======
+        // ====== BAIXAR MODELO CSV (ordem IDÊNTICA à planilha de diagnósticos) ======
         btnModelo.addEventListener('click', () => {
-            const headers = ['numero_processo','volume','ano_inicio','ano_fim','tipologia_predominante','estado_fisico','proposta_destinacao','restricao_acesso','observacoes','Sala_processo','Rua_processo','Prateleira_processo','sigla_unidade_origem','lote_caixa','SEI_processos','Responsavel_transferencia','Area_tranferencia','mt_linear_qt_caixas','ano_destinacao_calculado','conarq_codigo','conarq_descritor','conarq_destinacao_final'];
-            // EXEMPLO: 1 linha = 1 volume. O processo abaixo tem vols 1, 2 e 4 (o 3 será detectado como FALTANTE).
-            // O vol. 4 está em outra prateleira — o sistema aceita localização diferente por volume.
+            // Ordem de colunas IDÊNTICA à planilha de diagnósticos (28 colunas, com
+            // "estante" logo após "Rua_processo"). Importe o arquivo SEM nenhuma alteração manual.
+            const headers = ['id','ordem_importacao','quem_preencheu','numero_processo','ano_inicio','ano_fim','volume','tipologia_predominante','estado_fisico','proposta_destinacao','restricao_acesso','observacoes','Sala_processo','Rua_processo','estante','Prateleira_processo','sigla_unidade_origem','lote_caixa','created_at','SEI_processos','Responsavel_transferencia','Area_tranferencia','mt_linear_qt_caixas','ano_destinacao_calculado','conarq_codigo','conarq_descritor','conarq_destinacao_final','assunto_processo'];
+
+            // 3 linhas de exemplo do mesmo processo (volumes 1, 2 e 4):
+            // • o volume 3 está ausente de propósito — o sistema detecta como FALTANTE;
+            // • o volume 4 usa outra sala/rua/estante/prateleira — o sistema une as localizações com " / ".
             const linhasExemplo = [
-                ['0134250026/2016-10','1','2010','2016','031.12 - Compra de material de consumo','Bom (sujidade leve)','Fase Intermediária','Sigiloso','','Sala 14','Amazonas','P-04','GERENCIA DE IMPORTACAO E EXPORTACAO','Caixa 3','não','ADEMIR TIMOTEO','SEGFC - FINANCEIRO','','2021','031.12','Compra - material de consumo',''],
-                ['0134250026/2016-10','2','2010','2016','031.12 - Compra de material de consumo','Bom (sujidade leve)','Fase Intermediária','Sigiloso','','Sala 14','Amazonas','P-04','GERENCIA DE IMPORTACAO E EXPORTACAO','Caixa 3','não','ADEMIR TIMOTEO','SEGFC - FINANCEIRO','','2021','031.12','Compra - material de consumo',''],
-                ['0134250026/2016-10','4','2010','2016','031.12 - Compra de material de consumo','Bom (sujidade leve)','Fase Intermediária','Sigiloso','','Sala 15','Amazonas','P-01','GERENCIA DE IMPORTACAO E EXPORTACAO','Caixa 7','não','ADEMIR TIMOTEO','SEGFC - FINANCEIRO','','2021','031.12','Compra - material de consumo','']
+                ['1','1','WASHINGTON DE CARVALHO LOPES','0134250026/2016-10','2016','2026','1','031.12 - Compra — material de consumo','Bom (sujidade leve)','Fase Intermediária','Publico','Processo Regular','Sala 14 -A','Amazonas','E-02','P-04','SEGCI','Caixa 3','2026-10-19 11:34:59','sim','ADEMIR TIMOTEO DA SILVA','SEGFC - FINANCEIRO','1.01','2036','031.12','Compra — material de consumo','','CONTRATACAO DE EMPRESA PARA FORNECIMENTO DE MATERIAL DE CONSUMO'],
+                ['2','2','WASHINGTON DE CARVALHO LOPES','0134250026/2016-10','2016','2026','2','031.12 - Compra — material de consumo','Bom (sujidade leve)','Fase Intermediária','Publico','','Sala 14 -A','Amazonas','E-02','P-04','SEGCI','Caixa 3','2026-10-19 11:34:59','sim','ADEMIR TIMOTEO DA SILVA','SEGFC - FINANCEIRO','1.01','2036','031.12','Compra — material de consumo','','CONTRATACAO DE EMPRESA PARA FORNECIMENTO DE MATERIAL DE CONSUMO'],
+                ['3','3','WASHINGTON DE CARVALHO LOPES','0134250026/2016-10','2016','2026','4','031.12 - Compra — material de consumo','Bom (sujidade leve)','Fase Intermediária','Publico','Processo com a capa rasgada','Sala 15 -B','Jurema','E-05','P-02','SEGCI','Caixa 7','2026-10-19 11:34:59','sim','ADEMIR TIMOTEO DA SILVA','SEGFC - FINANCEIRO','1.01','2036','031.12','Compra — material de consumo','Guarda permanente','CONTRATACAO DE EMPRESA PARA FORNECIMENTO DE MATERIAL DE CONSUMO']
             ];
 
             const csvContent = [
                 headers.join(','),
-                ...linhasExemplo.map(linha => linha.map(field => `"${field}"`).join(','))
+                ...linhasExemplo.map(l => l.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
             ].join('\n');
 
             const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1457,10 +1477,79 @@ function renderTabela() {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showMessage('Modelo baixado! A ordem das colunas é idêntica à sua planilha de diagnósticos (28 colunas, com "estante" logo após "Rua_processo"). Você pode importar sem nenhuma alteração manual.', 'success');
         });
 
         // ====== IMPORTAR EM MASSA ======
         btnUpload.addEventListener('click', () => fileInput.click());
+
+        // Funções auxiliares da importação e dos destaques visuais (SEI / Dest.)
+        function ehSim(v) { const s = String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase(); return ['sim', 'yes', 'true', '1', 's', 'x'].includes(s); }
+        function limparNumeroImp(v) { return String(v ?? '').replace(/\.0+$/, '').trim(); }
+        function getSeiFlag(p) { if (p.sei === true) return true; if (p.sei === false) return false; const dx = p.dadosImportacao || {}; return ehSim(dx.seiProcessos); }
+        function getAnoDest(p) { return limparNumeroImp(p.anoDestinacao || (p.dadosImportacao && p.dadosImportacao.anoDestinacaoCalculado) || ''); }
+        function getTipologia(p) { return String(p.tipologiaPredominante || (p.dadosImportacao && p.dadosImportacao.tipologiaPredominante) || '').trim(); }
+        function getResponsavelTransf(p) { return String(p.responsavelTransferencia || (p.dadosImportacao && p.dadosImportacao.responsavelTransferencia) || '').trim(); }
+        // ===== [PATCH-ACENTOS] Correção de acentuação (mojibake UTF-8 lido como CP1252/Latin-1) =====
+        // Ex.: "CONTRATAÃ‡ÃƒO" -> "CONTRATAÇÃO" | "ServiÃ§o" -> "Serviço" | "nÃ£o" -> "não"
+        const MOJIBAKE_REV = { 0x20AC:0x80, 0x201A:0x82, 0x0192:0x83, 0x201E:0x84, 0x2026:0x85, 0x2020:0x86, 0x2021:0x87, 0x02C6:0x88, 0x2030:0x89, 0x0160:0x8A, 0x2039:0x8B, 0x0152:0x8C, 0x017D:0x8E, 0x2018:0x91, 0x2019:0x92, 0x201C:0x93, 0x201D:0x94, 0x2022:0x95, 0x2013:0x96, 0x2014:0x97, 0x02DC:0x98, 0x2122:0x99, 0x0161:0x9A, 0x203A:0x9B, 0x0153:0x9C, 0x017E:0x9E, 0x0178:0x9F };
+        function repararMojibakeUmaVez(s) {
+            if (typeof s !== 'string' || !s) return s;
+            if (!/[\u00C2-\u00F4][\u0080-\u00BF\u20AC\u201A\u0192\u201E\u2026\u2020\u2021\u02C6\u2030\u0160\u2039\u0152\u017D\u2018\u2019\u201C\u201D\u2022\u2013\u2014\u02DC\u2122\u0161\u203A\u0153\u017E\u0178]/.test(s)) return s;
+            const byteDe = (cj) => (cj <= 0xFF) ? cj : (MOJIBAKE_REV[cj] !== undefined ? MOJIBAKE_REV[cj] : -1);
+            let saida = '';
+            let i = 0;
+            let alterado = false;
+            while (i < s.length) {
+                const b1 = s.charCodeAt(i);
+                let tamSeq = 0;
+                if (b1 >= 0xC2 && b1 <= 0xDF) tamSeq = 2;
+                else if (b1 >= 0xE0 && b1 <= 0xEF) tamSeq = 3;
+                else if (b1 >= 0xF0 && b1 <= 0xF4) tamSeq = 4;
+                if (tamSeq > 0) {
+                    let sequenciaValida = true;
+                    const bytes = [b1];
+                    for (let j = 1; j < tamSeq; j++) {
+                        const bj = (i + j < s.length) ? byteDe(s.charCodeAt(i + j)) : -1;
+                        if (bj < 0x80 || bj > 0xBF) { sequenciaValida = false; break; }
+                        bytes.push(bj);
+                    }
+                    if (sequenciaValida) {
+                        let cp;
+                        if (tamSeq === 2) cp = ((b1 & 0x1F) << 6) | (bytes[1] & 0x3F);
+                        else if (tamSeq === 3) cp = ((b1 & 0x0F) << 12) | ((bytes[1] & 0x3F) << 6) | (bytes[2] & 0x3F);
+                        else cp = ((b1 & 0x07) << 18) | ((bytes[1] & 0x3F) << 12) | ((bytes[2] & 0x3F) << 6) | (bytes[3] & 0x3F);
+                        if (cp > 0xFFFF) { cp -= 0x10000; saida += String.fromCharCode(0xD800 + (cp >> 10), 0xDC00 + (cp & 0x3FF)); }
+                        else saida += String.fromCharCode(cp);
+                        i += tamSeq; alterado = true; continue;
+                    }
+                }
+                saida += s.charAt(i);
+                i += 1;
+            }
+            return alterado ? saida : s;
+        }
+        function repararTexto(v) {
+            if (typeof v !== 'string' || !v) return v;
+            if (!/[\u00C2-\u00F4][\u0080-\u00BF\u20AC\u201A\u0192\u201E\u2026\u2020\u2021\u02C6\u2030\u0160\u2039\u0152\u017D\u2018\u2019\u201C\u201D\u2022\u2013\u2014\u02DC\u2122\u0161\u203A\u0153\u017E\u0178]/.test(v)) return v;
+            let atual = v, anterior, guard = 0;
+            do { anterior = atual; atual = repararMojibakeUmaVez(atual); guard++; } while (atual !== anterior && guard < 3);
+            return atual;
+        }
+        function limparRegistroMojibake(reg, prof) {
+            if (reg === null || typeof reg !== 'object') return (typeof reg === 'string') ? repararTexto(reg) : reg;
+            const nivel = prof || 0;
+            if (nivel > 8) return reg;
+            if (Array.isArray(reg)) { for (let idx = 0; idx < reg.length; idx++) reg[idx] = limparRegistroMojibake(reg[idx], nivel + 1); return reg; }
+            for (const chave of Object.keys(reg)) {
+                const valor = reg[chave];
+                if (typeof valor === 'string') reg[chave] = repararTexto(valor);
+                else if (valor && typeof valor === 'object') limparRegistroMojibake(valor, nivel + 1);
+            }
+            return reg;
+        }
+        // ===== [/PATCH-ACENTOS] =====
 
         // NOVA LÓGICA: cada linha = 1 volume individual. Linhas do mesmo processo
         // são AGRUPADAS em 1 único registro. Total de volumes = MAIOR nº encontrado.
@@ -1492,7 +1581,7 @@ function renderTabela() {
 
                     json.forEach(row => {
                         const rowN = {};
-                        Object.keys(row).forEach(k => { rowN[normKey(k)] = row[k]; });
+                        Object.keys(row).forEach(k => { const valorCel = row[k]; rowN[normKey(repararTexto(String(k)))] = (typeof valorCel === 'string') ? repararTexto(valorCel) : valorCel; });
                         const pega = (...aliases) => { for (const a of aliases) { const v = rowN[normKey(a)]; if (v !== undefined && v !== null && String(v).trim() !== '') return v; } return ''; };
 
                         const numProc = String(pega('numeroProcesso', 'numero_processo', 'Nº do Processo', 'numeroprocessosei')).toUpperCase().trim();
@@ -1570,20 +1659,25 @@ function renderTabela() {
                             numeroProcesso: g.numProc,
                             numVolumes: totalVol,
                             volumesFaltantes: faltantes.length ? faltantes.join(',') : null,
-                            interessado: String(pegaGrupo('interessado')).toUpperCase().trim(),
-                            assunto: String(pegaGrupo('assunto', 'tipologia_predominante')).toUpperCase().trim(),
+                            interessado: String(pegaGrupo('interessado', 'sigla_unidade_origem')).toUpperCase().trim(),
+                            assunto: String(pegaGrupo('assunto_processo', 'assunto', 'tipologia_predominante')).toUpperCase().trim(),
                             modalidade: String(pegaGrupo('modalidade')).toUpperCase().trim(),
                             sala: salasU.join(' / '),
                             rua: ruasU.join(' / '),
                             estante: estantesU.join(' / '),
                             prateleira: prateleirasU.join(' / '),
                             departamento: String(pegaGrupo('departamento', 'Area_tranferencia', 'Area_transferencia')).toUpperCase().trim(),
+                            responsavelTransferencia: String(pegaGrupo('responsavel_transferencia', 'Responsavel_transferencia')).trim(),
+                            tipologiaPredominante: String(pegaGrupo('tipologia_predominante', 'tipologia')).trim(),
+                            anoDestinacao: limparNumeroImp(pegaGrupo('ano_destinacao_calculado', 'anoDestinacao')),
+                            sei: ehSim(pegaGrupo('sei_processos', 'SEI_processos', 'sei')),
                             recebedor: String(pegaGrupo('recebedor')).toUpperCase().trim(),
                             dadosImportacao: Object.keys(extras).length ? extras : null,
                             dataEntrega: dataEntrega || null,
                             criadoEm: new Date().toISOString(),
                             _volumesPresentes: volumesPresentes,
-                            _faltantes: faltantes
+                            _faltantes: faltantes,
+                            _seiBruto: String(pegaGrupo('sei_processos', 'sei')).trim()
                         };
                     });
 
@@ -1599,7 +1693,7 @@ function renderTabela() {
 
                     // 3a. Inserir processos novos
                     if (paraInserir.length > 0) {
-                        const payload = paraInserir.map(p => { const { _volumesPresentes, _faltantes, ...resto } = p; return resto; });
+                        const payload = paraInserir.map(p => { const { _volumesPresentes, _faltantes, _seiBruto, ...resto } = p; return resto; });
                         const { data: insertedData, error } = await supabase.from('processos_arquivados').insert(payload).select();
                         if (error) throw error;
                         inseridos = insertedData.length;
@@ -1640,6 +1734,13 @@ function renderTabela() {
                             if ((!existente[c] || String(existente[c]).trim() === '') && novo[c]) dadosMerge[c] = novo[c];
                         });
 
+                        // Promove as novas colunas do banco (extras de importações antigas viram campos próprios)
+                        const dxPromo = (existente.dadosImportacao && typeof existente.dadosImportacao === 'object' && !Array.isArray(existente.dadosImportacao)) ? existente.dadosImportacao : {};
+                        dadosMerge.responsavelTransferencia = novo.responsavelTransferencia || dxPromo.responsavelTransferencia || existente.responsavelTransferencia || null;
+                        dadosMerge.tipologiaPredominante = novo.tipologiaPredominante || dxPromo.tipologiaPredominante || existente.tipologiaPredominante || null;
+                        dadosMerge.anoDestinacao = novo.anoDestinacao || limparNumeroImp(dxPromo.anoDestinacaoCalculado) || existente.anoDestinacao || null;
+                        dadosMerge.sei = (String(novo._seiBruto).trim() !== '') ? novo.sei : (dxPromo.seiProcessos !== undefined ? ehSim(dxPromo.seiProcessos) : (existente.sei === true));
+
                         // Preserva/mescla detalhe volume a volume em dadosImportacao
                         const diEx = (existente.dadosImportacao && typeof existente.dadosImportacao === 'object' && !Array.isArray(existente.dadosImportacao)) ? existente.dadosImportacao : {};
                         const diNovo = novo.dadosImportacao || {};
@@ -1664,7 +1765,7 @@ function renderTabela() {
                     // ===== PASSO 4: Feedback final + refresh de segurança =====
                     if (inseridos + mesclados > 0) {
                         const { data: refresh } = await supabase.from('processos_arquivados').select('*');
-                        if (refresh) { todosProcessos = refresh; aplicarFiltroBusca(); renderDashboard(); }
+                        if (refresh) { todosProcessos = refresh.map(item => limparRegistroMojibake(item, 0)); aplicarFiltroBusca(); renderDashboard(); }
 
                         let msg = `✅ Importação concluída: ${inseridos} processo(s) novo(s), ${mesclados} existente(s) atualizado(s) com novos volumes.`;
                         if (comFaltantes > 0) msg += ` ⚠️ ${comFaltantes} processo(s) com volumes faltantes.`;
@@ -1803,7 +1904,7 @@ function renderTabela() {
             try {
                 const logOriginal = todosLogs.find(l => l.tipoAcao === 'DESARQUIVAMENTO' && l.idDocumentoAfetado === desarq.processoId);
                 let dadosParaRestaurar = {};
-                if (logOriginal && logOriginal.dadosAntes) { dadosParaRestaurar = { ...logOriginal.dadosAntes }; delete dadosParaRestaurar.id; }
+                if (logOriginal && logOriginal.dadosAntes) { dadosParaRestaurar = limparRegistroMojibake({ ...logOriginal.dadosAntes }, 0); delete dadosParaRestaurar.id; }
                 else { dadosParaRestaurar = { numeroProcesso: desarq.numeroProcesso, numVolumes: desarq.qtdVolumes, departamento: desarq.departamentoSolicitante, recebedor: "Devolvido via cancelamento" }; }
                 
                 const { data: newDoc, error: errInsert } = await supabase.from('processos_arquivados').insert([dadosParaRestaurar]).select();
